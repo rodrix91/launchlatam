@@ -52,6 +52,7 @@ def page(lang, path, title, desc, body, alts=None, schema=None, dock=None, og=No
 <link rel="canonical" href="{url}">{alt_links}
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-PLACEHOLDER'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src https://api.github.com https://raw.githubusercontent.com; form-action 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="google-site-verification" content="ZtPoEPg8NinMyCsJ78acEyxd46AO3bJxT2z6dfDGVHA" />
 <meta name="theme-color" content="#1E1412"><link rel="icon" href="{BASE}/assets/favicon.svg" type="image/svg+xml">
 <link rel="preload" href="{BASE}/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{BASE}/assets/site.css">
