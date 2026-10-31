@@ -120,3 +120,22 @@ LEGAL = [
  ("en","/en/privacy/","Privacy policy",PRIV_EN,{"es":"/privacidad/","en":"/en/privacy/"}),
  ("en","/en/terms/","Terms of service",TERMS_EN,{"es":"/terminos/","en":"/en/terms/"}),
 ]
+
+# Per-article FAQ (rendered visibly on the article and as FAQPage JSON-LD). Key = slug.
+POST_FAQ = {
+"mercado-pago-en-apps-lovable": [
+ ("¿Puedo poner el access token de Mercado Pago en el frontend de Lovable?", "No. El access token es secreto: con él se pueden crear cobros y leer pagos de tu cuenta. Guardalo como secreto en Supabase (MP_ACCESS_TOKEN) y usalo solo desde una Edge Function. En el frontend solo va la public key."),
+ ("¿Cómo sé si un pago de Mercado Pago fue aprobado?", "Con el webhook, no con la URL de regreso. Consultá el pago en la API de Mercado Pago con su id, activá el plan solo si el status es approved y validá la firma del encabezado x-signature."),
+ ("¿Dónde se define el precio del producto?", "En el servidor, dentro de la Edge Function que crea la preferencia de pago, para que nadie pueda cambiarlo desde el navegador."),
+],
+"checklist-seguridad-apps-vibe-coding": [
+ ("¿La clave anon de Supabase es secreta?", "No. Es pública por diseño. Lo que protege tus datos es Row Level Security con políticas que filtren por auth.uid() en cada tabla."),
+ ("¿Qué hago si mi clave service_role estuvo en el repositorio?", "Rotala de inmediato en Supabase, sacala del código y del historial, y usala solo del lado del servidor."),
+ ("¿Qué controles revisa el escaneo gratis?", "Los puntos 1, 2, 5, 6, 7, 10, 11 y 12 de la checklist, en cualquier repo público de GitHub, desde tu navegador. Para repos privados hay un chequeo guiado."),
+],
+"stripe-no-funciona-en-mi-pais": [
+ ("¿En qué países de Latinoamérica abre cuentas locales Stripe?", "Según la página de disponibilidad de Stripe, solo en México y Brasil."),
+ ("¿Qué uso si vendo dentro de un país con Mercado Pago?", "Mercado Pago: tus clientes ya lo usan y pueden pagar con saldo, tarjeta local o efectivo. Necesitás cuenta en el país donde cobrás."),
+ ("¿Qué es un merchant of record?", "Un proveedor como Paddle, Lemon Squeezy o Whop que vende en tu nombre, cobra los impuestos de cada país y te paga. Cobra comisiones más altas y revisa tu negocio antes de aprobarte."),
+],
+}

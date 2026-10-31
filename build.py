@@ -297,7 +297,7 @@ def write(path, content):
 def prose_page(lang, path, title, desc, inner, alts=None, schema=None):
     return page(lang, path, title, desc, f'<article class="wrap prose" style="padding:3rem 0 5rem">{inner}</article>', alts, schema)
 
-from content import POST_BODIES, LEGAL
+from content import POST_BODIES, LEGAL, POST_FAQ
 urls = []
 for l in LOCALES:
     write(LOCALES[l][1], home(l)); urls.append((LOCALES[l][1], "1.0"))
@@ -317,7 +317,14 @@ for lang in LOCALES:
 for p in POSTS:
     lang = p["lang"]; bt = BT[lang]; path = post_path(p); alts = post_alts(p)
     sch=[{"@context":"https://schema.org","@type":"Article","headline":p["title"],"description":p["desc"],"inLanguage":LOCALES[lang][0],"datePublished":p["date"],"dateModified":TODAY,"author":{"@type":"Person","name":"Rodrigo Pantoja Navajas"},"publisher":{"@type":"Organization","name":"LaunchLatam"},"mainEntityOfPage":BASE+path}]
-    inner = f'<p class="mono"><a href="{BASE}{BLOG_ROOT[lang]}">Blog</a> · {fdate(p["date"], lang)}</p><h1 style="font-size:clamp(2rem,4.5vw,3.4rem)">{p["title"]}</h1>' + POST_BODIES[p["slug"]] + f'<div class="report"><h3>{bt["ch"]}</h3><p>{bt["cp"]}</p><div class="ctas"><a class="btn a" href="{BASE}{bt["scan"]}">{bt["cb"]}</a><a class="btn s" style="color:var(--sal);border-color:var(--sal)" href="{W["fix"]}" rel="noopener">Fix Pack $29</a></div></div>'
+    faqs = POST_FAQ.get(p["slug"], [])
+    sch.append({"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
+        {"@type":"ListItem","position":1,"name":bt["home"],"item":BASE+LOCALES[lang][1]},
+        {"@type":"ListItem","position":2,"name":"Blog","item":BASE+BLOG_ROOT[lang]},
+        {"@type":"ListItem","position":3,"name":p["title"],"item":BASE+path}]})
+    if faqs: sch.append({"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":q,"acceptedAnswer":{"@type":"Answer","text":ans}} for q,ans in faqs]})
+    faq_html = (f'<h2>{bt["faq"]}</h2>' + "".join(f'<details><summary>{q}</summary><p>{ans}</p></details>' for q,ans in faqs)) if faqs else ""
+    inner = f'<nav aria-label="Breadcrumb" class="mono"><a href="{BASE}{LOCALES[lang][1]}">{bt["home"]}</a> / <a href="{BASE}{BLOG_ROOT[lang]}">Blog</a> · {fdate(p["date"], lang)}</nav><h1 style="font-size:clamp(2rem,4.5vw,3.4rem)">{p["title"]}</h1>' + POST_BODIES[p["slug"]] + faq_html + f'<div class="report"><h3>{bt["ch"]}</h3><p>{bt["cp"]}</p><div class="ctas"><a class="btn a" href="{BASE}{bt["scan"]}">{bt["cb"]}</a><a class="btn s" style="color:var(--sal);border-color:var(--sal)" href="{W["fix"]}" rel="noopener">Fix Pack $29</a></div></div>'
     write(path, prose_page(lang, path, p["title"]+" · LaunchLatam", p["desc"], inner, alts, schema=sch)); urls.append((path, "0.7", alts))
 for (lang, path, title, inner, alt) in LEGAL:
     write(path, prose_page(lang, path, title+" · LaunchLatam", title+" de LaunchLatam" if lang=="es" else "LaunchLatam "+title, inner, alt)); urls.append((path,"0.3",alt))
