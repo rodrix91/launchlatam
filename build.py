@@ -6,7 +6,7 @@ ROOT = os.environ.get("OUT", os.path.join(os.path.dirname(os.path.abspath(__file
 TODAY = datetime.date.today().isoformat()
 MAIL = "rodrixlabs@mail.grokbot.com"
 # T-101 analytics: GoatCounter site code (the "CODIGO" in https://CODIGO.goatcounter.com). Empty = analytics fully omitted.
-GOATCOUNTER = os.environ.get("GOATCOUNTER", "")
+GOATCOUNTER = os.environ.get("GOATCOUNTER", "launchlatam")
 W = {  # Whop checkout links
  "fix": "https://whop.com/checkout/plan_zaTKde6gNjQM2",
  "l149": "https://whop.com/checkout/plan_klbC3rVIhgyog",
