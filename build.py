@@ -5,6 +5,8 @@ BASE = os.environ.get("BASE", "https://rodrix91.github.io/launchlatam")
 ROOT = os.environ.get("OUT", os.path.join(os.path.dirname(os.path.abspath(__file__)), "site"))
 TODAY = datetime.date.today().isoformat()
 MAIL = "rodrixlabs@mail.grokbot.com"
+# T-101 analytics: GoatCounter site code (the "CODIGO" in https://CODIGO.goatcounter.com). Empty = analytics fully omitted.
+GOATCOUNTER = os.environ.get("GOATCOUNTER", "launchlatam")
 W = {  # Whop checkout links
  "fix": "https://whop.com/checkout/plan_zaTKde6gNjQM2",
  "l149": "https://whop.com/checkout/plan_klbC3rVIhgyog",
@@ -21,6 +23,9 @@ SRC = {
 }
 LOGO = '<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="4 3"/><path d="M11 25 L20 10 L29 25 Z" fill="#E2522B"/><path d="M14 29h12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>'
 PERSON = {"@type":"Person","name":"Rodrigo Pantoja Navajas","jobTitle":"Data Science Manager","url":BASE+"/sobre/","sameAs":["https://x.com/RODRX_NOVA","https://www.linkedin.com/in/rodrigo-p-625862153"]}
+GC_SCRIPT = " https://gc.zgo.at" if GOATCOUNTER else ""
+GC_CONNECT = GC_IMG = " https://*.goatcounter.com" if GOATCOUNTER else ""
+GC_TAG = f'<script data-goatcounter="https://{GOATCOUNTER}.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>' if GOATCOUNTER else ""
 LOCALES = {"es": ("es-419", "/"), "pt": ("pt-BR", "/pt/"), "en": ("en", "/en/")}
 
 def page(lang, path, title, desc, body, alts=None, schema=None, dock=None, og=None):
@@ -50,7 +55,7 @@ def page(lang, path, title, desc, body, alts=None, schema=None, dock=None, og=No
     return f'''<!doctype html><html lang="{hl}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{html.escape(title)}</title><meta name="description" content="{html.escape(desc)}">
 <link rel="canonical" href="{url}">{alt_links}
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-PLACEHOLDER'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src https://api.github.com https://raw.githubusercontent.com; form-action 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-PLACEHOLDER'{GC_SCRIPT}; style-src 'self' 'unsafe-inline'; img-src 'self' data:{GC_IMG}; font-src 'self'; connect-src https://api.github.com https://raw.githubusercontent.com{GC_CONNECT}; form-action 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="google-site-verification" content="ZtPoEPg8NinMyCsJ78acEyxd46AO3bJxT2z6dfDGVHA" />
 <meta name="theme-color" content="#1E1412"><link rel="icon" href="{BASE}/assets/favicon.svg" type="image/svg+xml">
@@ -58,7 +63,7 @@ def page(lang, path, title, desc, body, alts=None, schema=None, dock=None, og=No
 <link rel="stylesheet" href="{BASE}/assets/site.css">
 <meta property="og:type" content="website"><meta property="og:site_name" content="LaunchLatam"><meta property="og:title" content="{html.escape(title)}"><meta property="og:description" content="{html.escape(desc)}"><meta property="og:url" content="{url}"><meta property="og:image" content="{ogi}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:locale" content="{hl.replace('-','_')}">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{ogi}">
-{sch}<script src="{BASE}/assets/scan.js" defer></script></head><body>
+{sch}<script src="{BASE}/assets/scan.js" defer></script>{GC_TAG}</head><body>
 <a class="skip" href="#main">{ {"es":"Saltar al contenido","pt":"Pular para o conteúdo","en":"Skip to content"}[lang] }</a>
 <header class="wrap mast"><a class="brand" href="{BASE}{home}">{LOGO}<span>LaunchLatam</span></a><div class="lang" aria-label="Idioma / Language">{langs}</div></header>
 <main id="main">{body}</main>{FOOT[lang]}{dock_html}</body></html>'''
