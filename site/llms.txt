@@ -1,6 +1,6 @@
 # LaunchLatam
 
-> LaunchLatam makes apps built with AI tools (Lovable, Bolt, Cursor, Replit) ready to launch and get paid in Latin America: security fixes, local payments (Mercado Pago, Pix, OXXO) and per-country data-protection basics, then ongoing maintenance. Agent-operated, human-reviewed. Founded in Bolivia by Rodrigo Pantoja. Languages: Spanish (primary), Portuguese, English.
+> LaunchLatam makes apps built with AI tools (Lovable, Bolt, Cursor, Replit) ready to launch and get paid in Latin America: security fixes, local payments (Mercado Pago, Pix, OXXO) and per-country data-protection basics, then ongoing maintenance. Agent-operated, with review and approval before any change is applied to the client's app. Founded in Bolivia by Rodrigo Pantoja. Languages: Spanish (primary), Portuguese, English.
 
 ## Offers (USD)
 - Free scan: browser-based scan of a public GitHub repo (exposed secrets, Supabase tables without Row Level Security, payments, legal pages): https://rodrix91.github.io/launchlatam/escaneo/
@@ -19,7 +19,7 @@
 - [¿Stripe no está disponible en tu país? Opciones para cobrar en Latinoamérica](https://rodrix91.github.io/launchlatam/blog/stripe-no-funciona-en-mi-pais/) (es): Qué hacer si Stripe no abre cuentas en tu país: Mercado Pago, dLocal, Paddle, Lemon Squeezy y Whop comparados para creadores latinoamericanos.
 
 ## FAQ
-- **What is LaunchLatam?** An agent-operated, human-reviewed service that makes apps built with Lovable, Bolt, Cursor or Replit ready to launch and get paid in Latin America: security, local payments and data-protection basics.
+- **What is LaunchLatam?** An agent-operated service, with review and approval before any change is applied to your app, that makes apps built with Lovable, Bolt, Cursor or Replit ready to launch and get paid in Latin America: security, local payments and data-protection basics.
 - **Is the free scan safe for my code?** Yes. It runs in your browser and only reads public repos via GitHub's public API. We never receive or store your code. It checks repo code, not your live app or database.
 - **Will you change my app without permission?** No. Every change arrives as a pull request you review and approve.
 - **Which payment providers do you integrate?** Mercado Pago across the region, Pix in Brazil, OXXO in Mexico, and Stripe where it fits.
@@ -27,7 +27,7 @@
 - **How long does it take?** Fix Pack: 72 business hours. Launch: 5–10 business days.
 
 ## Preguntas frecuentes (es)
-- **¿Qué es LaunchLatam?** Un servicio operado por agentes de IA y supervisado por una persona que deja apps hechas con Lovable, Bolt, Cursor o Replit listas para lanzar y cobrar en Latinoamérica: seguridad, pagos locales y lo básico de protección de datos.
+- **¿Qué es LaunchLatam?** Un servicio operado por agentes de IA, con revisión y aprobación antes de aplicar cualquier cambio en tu app, que deja apps hechas con Lovable, Bolt, Cursor o Replit listas para lanzar y cobrar en Latinoamérica: seguridad, pagos locales y lo básico de protección de datos.
 - **¿El escaneo gratis es seguro para mi código?** Sí. Corre en tu navegador y lee solo repos públicos de GitHub mediante la API pública de GitHub. No guardamos ni recibimos tu código. Revisa el código del repo, no tu app en vivo ni tu base de datos.
 - **¿Tocan mi app sin permiso?** No. Todo cambio llega como pull request en tu repositorio. Vos lo revisás y lo aprobás. Nunca te pedimos la clave service_role ni contraseñas por correo.
 - **¿Qué pasarelas de pago integran?** Mercado Pago (Argentina, México, Brasil, Chile, Colombia, Perú, Uruguay), Pix en Brasil, OXXO en México y Stripe donde tenga sentido. Elegimos según tu país y el de tus clientes.
@@ -36,7 +36,7 @@
 - **¿Y si no quedo conforme?** Si no corregimos las fallas acordadas, te devolvemos el dinero del Fix Pack. Las condiciones están en los términos.
 
 ## Perguntas frequentes (pt)
-- **O que é a LaunchLatam?** Um serviço operado por agentes de IA e supervisionado por uma pessoa, que deixa apps feitos com Lovable, Bolt, Cursor ou Replit prontos para lançar e cobrar na América Latina.
+- **O que é a LaunchLatam?** Um serviço operado por agentes de IA, com revisão e aprovação antes de aplicar qualquer mudança no seu app, que deixa apps feitos com Lovable, Bolt, Cursor ou Replit prontos para lançar e cobrar na América Latina.
 - **O scan grátis é seguro para o meu código?** Sim. Ele roda no seu navegador e lê apenas repos públicos pela API pública do GitHub. Não recebemos nem guardamos seu código.
 - **Vocês mexem no app sem permissão?** Não. Toda mudança chega como pull request no seu repositório, e você aprova.
 - **Quais meios de pagamento vocês integram?** Pix e Mercado Pago no Brasil, Mercado Pago no resto da região, OXXO no México e Stripe quando faz sentido.

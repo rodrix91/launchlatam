@@ -116,7 +116,7 @@ C = {
  subs=[("Mantenimiento Base","29","Escaneo semanal, parches de seguridad y dependencias al día.","m29"),("Mantenimiento Pro","79","Todo Base + monitoreo de cobros, cambios normativos y 2 h de mejoras al mes.","m79")],
  mes=" cada 30 días", sub="Suscribirme",
  fk="05 · Preguntas", fh="Preguntas frecuentes",
- faq=[("¿Qué es LaunchLatam?","Un servicio operado por agentes de IA y supervisado por una persona que deja apps hechas con Lovable, Bolt, Cursor o Replit listas para lanzar y cobrar en Latinoamérica: seguridad, pagos locales y lo básico de protección de datos."),
+ faq=[("¿Qué es LaunchLatam?","Un servicio operado por agentes de IA, con revisión y aprobación antes de aplicar cualquier cambio en tu app, que deja apps hechas con Lovable, Bolt, Cursor o Replit listas para lanzar y cobrar en Latinoamérica: seguridad, pagos locales y lo básico de protección de datos."),
       ("¿El escaneo gratis es seguro para mi código?","Sí. Corre en tu navegador y lee solo repos públicos de GitHub mediante la API pública de GitHub. No guardamos ni recibimos tu código. Revisa el código del repo, no tu app en vivo ni tu base de datos."),
       ("¿Tocan mi app sin permiso?","No. Todo cambio llega como pull request en tu repositorio. Vos lo revisás y lo aprobás. Nunca te pedimos la clave service_role ni contraseñas por correo."),
       ("¿Qué pasarelas de pago integran?","Mercado Pago (Argentina, México, Brasil, Chile, Colombia, Perú, Uruguay), Pix en Brasil, OXXO en México y Stripe donde tenga sentido. Elegimos según tu país y el de tus clientes."),
@@ -124,7 +124,7 @@ C = {
       ("¿Cuánto tarda?","El Fix Pack, 72 horas hábiles. Un lanzamiento, de 5 a 10 días hábiles según países y pasarelas."),
       ("¿Y si no quedo conforme?","Si no corregimos las fallas acordadas, te devolvemos el dinero del Fix Pack. Las condiciones están en los términos.")],
  ak="06 · Quiénes somos", ah="Un equipo chico, con agentes que no se cansan.",
- ap="LaunchLatam nace en Bolivia, de Rodrigo Pantoja, data scientist manager que construye con agentes de IA todos los días. Los agentes hacen el escaneo y el primer borrador de cada corrección; una persona revisa todo antes de que llegue a tu repo. Todavía no tenemos clientes que mostrar: preferimos decírtelo a inventarlos.",
+ ap="LaunchLatam nace en Bolivia, de Rodrigo Pantoja, data scientist manager que construye con agentes de IA todos los días. Los agentes hacen el escaneo y el primer borrador de cada corrección, con revisión y aprobación antes de aplicar cualquier cambio en tu app. Todavía no tenemos clientes que mostrar: preferimos decírtelo a inventarlos.",
  bk="Recursos", bh="Del blog",
 ),
 "pt": dict(
@@ -158,14 +158,14 @@ C = {
  subs=[("Manutenção Base","29","Scan semanal, patches de segurança e dependências em dia.","m29"),("Manutenção Pro","79","Tudo do Base + monitoramento de pagamentos, mudanças regulatórias e 2 h de melhorias por mês.","m79")],
  mes=" a cada 30 dias", sub="Assinar",
  fk="05 · Perguntas", fh="Perguntas frequentes",
- faq=[("O que é a LaunchLatam?","Um serviço operado por agentes de IA e supervisionado por uma pessoa, que deixa apps feitos com Lovable, Bolt, Cursor ou Replit prontos para lançar e cobrar na América Latina."),
+ faq=[("O que é a LaunchLatam?","Um serviço operado por agentes de IA, com revisão e aprovação antes de aplicar qualquer mudança no seu app, que deixa apps feitos com Lovable, Bolt, Cursor ou Replit prontos para lançar e cobrar na América Latina."),
       ("O scan grátis é seguro para o meu código?","Sim. Ele roda no seu navegador e lê apenas repos públicos pela API pública do GitHub. Não recebemos nem guardamos seu código."),
       ("Vocês mexem no app sem permissão?","Não. Toda mudança chega como pull request no seu repositório, e você aprova."),
       ("Quais meios de pagamento vocês integram?","Pix e Mercado Pago no Brasil, Mercado Pago no resto da região, OXXO no México e Stripe quando faz sentido."),
       ("Isso substitui um advogado?","Não. Criamos páginas de privacidade e termos com base na LGPD e um checklist. Para dados sensíveis, recomendamos revisão jurídica."),
       ("Quanto tempo leva?","Fix Pack: 72 horas úteis. Lançamento: 5 a 10 dias úteis.")],
  ak="06 · Quem somos", ah="Uma equipe pequena, com agentes que não se cansam.",
- ap="A LaunchLatam nasceu na Bolívia, criada por Rodrigo Pantoja, gerente de ciência de dados que constrói com agentes de IA todos os dias. Os agentes fazem o scan e o primeiro rascunho de cada correção; uma pessoa revisa tudo antes de chegar ao seu repo. Ainda não temos clientes para mostrar, e preferimos dizer isso a inventá-los.",
+ ap="A LaunchLatam nasceu na Bolívia, criada por Rodrigo Pantoja, gerente de ciência de dados que constrói com agentes de IA todos os dias. Os agentes fazem o scan e o primeiro rascunho de cada correção, com revisão e aprovação antes de aplicar qualquer mudança no seu app. Ainda não temos clientes para mostrar, e preferimos dizer isso a inventá-los.",
  bk="Recursos", bh="Do blog (em espanhol)",
 ),
 "en": dict(
@@ -199,14 +199,14 @@ C = {
  subs=[("Maintenance Base","29","Weekly scan, security patches, dependencies kept current.","m29"),("Maintenance Pro","79","Everything in Base + payment monitoring, regulatory changes and 2 h of improvements a month.","m79")],
  mes=" every 30 days", sub="Subscribe",
  fk="05 · Questions", fh="FAQ",
- faq=[("What is LaunchLatam?","An agent-operated, human-reviewed service that makes apps built with Lovable, Bolt, Cursor or Replit ready to launch and get paid in Latin America: security, local payments and data-protection basics."),
+ faq=[("What is LaunchLatam?","An agent-operated service, with review and approval before any change is applied to your app, that makes apps built with Lovable, Bolt, Cursor or Replit ready to launch and get paid in Latin America: security, local payments and data-protection basics."),
       ("Is the free scan safe for my code?","Yes. It runs in your browser and only reads public repos via GitHub's public API. We never receive or store your code. It checks repo code, not your live app or database."),
       ("Will you change my app without permission?","No. Every change arrives as a pull request you review and approve."),
       ("Which payment providers do you integrate?","Mercado Pago across the region, Pix in Brazil, OXXO in Mexico, and Stripe where it fits."),
       ("Does this replace a lawyer?","No. We add privacy and terms pages based on each country's data law (e.g. Brazil's LGPD) plus a checklist. For sensitive data, get legal review."),
       ("How long does it take?","Fix Pack: 72 business hours. Launch: 5–10 business days.")],
  ak="06 · About", ah="A small team, with agents that don't get tired.",
- ap="LaunchLatam was started in Bolivia by Rodrigo Pantoja, a data science manager who builds with AI agents every day. Agents run the scan and draft each fix; a human reviews everything before it reaches your repo. We don't have customers to show yet, and we'd rather say so than invent them.",
+ ap="LaunchLatam was started in Bolivia by Rodrigo Pantoja, a data science manager who builds with AI agents every day. Agents run the scan and draft each fix, with review and approval before any change is applied to your app. We don't have customers to show yet, and we'd rather say so than invent them.",
  bk="Resources", bh="From the blog (Spanish)",
 )}
 
@@ -359,7 +359,7 @@ write("/robots.txt", f"User-agent: *\nAllow: /\n\n# AI crawlers welcome\nUser-ag
 c=C["es"]
 llms = f"""# LaunchLatam
 
-> LaunchLatam makes apps built with AI tools (Lovable, Bolt, Cursor, Replit) ready to launch and get paid in Latin America: security fixes, local payments (Mercado Pago, Pix, OXXO) and per-country data-protection basics, then ongoing maintenance. Agent-operated, human-reviewed. Founded in Bolivia by Rodrigo Pantoja. Languages: Spanish (primary), Portuguese, English.
+> LaunchLatam makes apps built with AI tools (Lovable, Bolt, Cursor, Replit) ready to launch and get paid in Latin America: security fixes, local payments (Mercado Pago, Pix, OXXO) and per-country data-protection basics, then ongoing maintenance. Agent-operated, with review and approval before any change is applied to the client's app. Founded in Bolivia by Rodrigo Pantoja. Languages: Spanish (primary), Portuguese, English.
 
 ## Offers (USD)
 - Free scan: browser-based scan of a public GitHub repo (exposed secrets, Supabase tables without Row Level Security, payments, legal pages): {BASE}/escaneo/
