@@ -280,7 +280,7 @@ cards = "".join(f'<a class="card" href="{BASE}/blog/{s}/"><h2 style="font-size:1
 write("/blog/", page("es", "/blog/", "Blog de LaunchLatam: seguridad, cobros y lanzamiento de apps hechas con IA", "Guías prácticas en español para lanzar y cobrar apps hechas con Lovable, Bolt, Cursor o Replit en Latinoamérica.", f'<div class="wrap" style="padding:3rem 0 5rem"><p class="mono">Blog</p><h1>Guías para lanzar y cobrar</h1><div class="cards">{cards}</div></div>'))
 urls.append(("/blog/","0.8"))
 for s,t,d in POSTS:
-    sch=[{"@context":"https://schema.org","@type":"Article","headline":t,"description":d,"inLanguage":"es-419","datePublished":"2026-10-31","dateModified":TODAY,"author":{"@type":"Organization","name":"LaunchLatam"},"publisher":{"@type":"Organization","name":"LaunchLatam"},"mainEntityOfPage":f"{BASE}/blog/{s}/"}]
+    sch=[{"@context":"https://schema.org","@type":"Article","headline":t,"description":d,"inLanguage":"es-419","datePublished":"2026-10-31","dateModified":TODAY,"author":{"@type":"Person","name":"Rodrigo Pantoja Navajas"},"publisher":{"@type":"Organization","name":"LaunchLatam"},"mainEntityOfPage":f"{BASE}/blog/{s}/"}]
     inner = f'<p class="mono"><a href="{BASE}/blog/">Blog</a> · 31 oct 2026</p><h1 style="font-size:clamp(2rem,4.5vw,3.4rem)">{t}</h1>' + POST_BODIES[s] + f'<div class="report"><h3>¿Querés saber cómo está tu app?</h3><p>Escaneá tu repo gratis en segundos, sin crear cuenta.</p><div class="ctas"><a class="btn a" href="{BASE}/escaneo/">Escaneo gratis →</a><a class="btn s" style="color:var(--sal);border-color:var(--sal)" href="{W["fix"]}" rel="noopener">Fix Pack $29</a></div></div>'
     write(f"/blog/{s}/", prose_page("es", f"/blog/{s}/", t+" · LaunchLatam", d, inner, schema=sch)); urls.append((f"/blog/{s}/","0.7"))
 for (lang, path, title, inner, alt) in LEGAL:
@@ -293,7 +293,7 @@ for p,pr in urls:
     extra = "".join(f'<xhtml:link rel="alternate" hreflang="{LOCALES[l][0]}" href="{BASE}{LOCALES[l][1]}"/>' for l in LOCALES) if p in [v[1] for v in LOCALES.values()] else ""
     sm += f"<url><loc>{BASE}{p}</loc><lastmod>{TODAY}</lastmod><priority>{pr}</priority>{extra}</url>"
 write("/sitemap.xml", sm+"</urlset>")
-write("/robots.txt", f"User-agent: *\nAllow: /\n\n# AI crawlers welcome\nUser-agent: GPTBot\nAllow: /\nUser-agent: ClaudeBot\nAllow: /\nUser-agent: PerplexityBot\nAllow: /\nUser-agent: Google-Extended\nAllow: /\n\nSitemap: {BASE}/sitemap.xml\n")
+write("/robots.txt", f"User-agent: *\nAllow: /\n\n# AI crawlers welcome\nUser-agent: GPTBot\nAllow: /\nUser-agent: ClaudeBot\nAllow: /\nUser-agent: PerplexityBot\nAllow: /\nUser-agent: Google-Extended\nAllow: /\nUser-agent: OAI-SearchBot\nAllow: /\nUser-agent: ChatGPT-User\nAllow: /\nUser-agent: Perplexity-User\nAllow: /\nUser-agent: Applebot-Extended\nAllow: /\nUser-agent: Bingbot\nAllow: /\n\nSitemap: {BASE}/sitemap.xml\n")
 c=C["es"]
 llms = f"""# LaunchLatam
 
@@ -314,6 +314,10 @@ llms = f"""# LaunchLatam
 """ + "".join(f"- [{t}]({BASE}/blog/{s}/): {d}\n" for s,t,d in POSTS) + f"""
 ## FAQ
 """ + "".join(f"- **{q}** {a}\n" for q,a in C["en"]["faq"]) + f"""
+## Preguntas frecuentes (es)
+""" + "".join(f"- **{q}** {a}\n" for q,a in C["es"]["faq"]) + """
+## Perguntas frequentes (pt)
+""" + "".join(f"- **{q}** {a}\n" for q,a in C["pt"]["faq"]) + f"""
 ## Contact
 {MAIL}
 """

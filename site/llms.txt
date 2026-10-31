@@ -26,5 +26,22 @@
 - **Does this replace a lawyer?** No. We add privacy and terms pages based on each country's data law (e.g. Brazil's LGPD) plus a checklist. For sensitive data, get legal review.
 - **How long does it take?** Fix Pack: 72 business hours. Launch: 5–10 business days.
 
+## Preguntas frecuentes (es)
+- **¿Qué es LaunchLatam?** Un servicio operado por agentes de IA y supervisado por una persona que deja apps hechas con Lovable, Bolt, Cursor o Replit listas para lanzar y cobrar en Latinoamérica: seguridad, pagos locales y lo básico de protección de datos.
+- **¿El escaneo gratis es seguro para mi código?** Sí. Corre en tu navegador y lee solo repos públicos de GitHub mediante la API pública de GitHub. No guardamos ni recibimos tu código. Revisa el código del repo, no tu app en vivo ni tu base de datos.
+- **¿Tocan mi app sin permiso?** No. Todo cambio llega como pull request en tu repositorio. Vos lo revisás y lo aprobás. Nunca te pedimos la clave service_role ni contraseñas por correo.
+- **¿Qué pasarelas de pago integran?** Mercado Pago (Argentina, México, Brasil, Chile, Colombia, Perú, Uruguay), Pix en Brasil, OXXO en México y Stripe donde tenga sentido. Elegimos según tu país y el de tus clientes.
+- **¿Esto reemplaza a un abogado?** No. Agregamos páginas de privacidad y términos basadas en la ley de datos de cada país (por ejemplo LGPD en Brasil o Ley 25.326 en Argentina) y una checklist. Para casos sensibles, como salud o finanzas, te recomendamos revisión legal.
+- **¿Cuánto tarda?** El Fix Pack, 72 horas hábiles. Un lanzamiento, de 5 a 10 días hábiles según países y pasarelas.
+- **¿Y si no quedo conforme?** Si no corregimos las fallas acordadas, te devolvemos el dinero del Fix Pack. Las condiciones están en los términos.
+
+## Perguntas frequentes (pt)
+- **O que é a LaunchLatam?** Um serviço operado por agentes de IA e supervisionado por uma pessoa, que deixa apps feitos com Lovable, Bolt, Cursor ou Replit prontos para lançar e cobrar na América Latina.
+- **O scan grátis é seguro para o meu código?** Sim. Ele roda no seu navegador e lê apenas repos públicos pela API pública do GitHub. Não recebemos nem guardamos seu código.
+- **Vocês mexem no app sem permissão?** Não. Toda mudança chega como pull request no seu repositório, e você aprova.
+- **Quais meios de pagamento vocês integram?** Pix e Mercado Pago no Brasil, Mercado Pago no resto da região, OXXO no México e Stripe quando faz sentido.
+- **Isso substitui um advogado?** Não. Criamos páginas de privacidade e termos com base na LGPD e um checklist. Para dados sensíveis, recomendamos revisão jurídica.
+- **Quanto tempo leva?** Fix Pack: 72 horas úteis. Lançamento: 5 a 10 dias úteis.
+
 ## Contact
 rodrixlabs@mail.grokbot.com
