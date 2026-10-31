@@ -75,10 +75,10 @@ FOOT = {
    f'<li><a href="{BASE}/blog/">Blog</a></li><li><a href="{BASE}/escaneo/">Escaneo gratis</a></li><li><a href="{BASE}/llms.txt">llms.txt</a></li>'),
  "pt": foot("pt","Deixamos seu app feito com IA pronto para lançar e cobrar na América Latina.","Boletim semanal (em espanhol): segurança, pagamentos e lançamento de apps feitos com IA.",
    f'<li><a href="{BASE}/en/privacy/">Privacidade (EN)</a></li><li><a href="{BASE}/en/terms/">Termos (EN)</a></li>',
-   f'<li><a href="{BASE}/blog/">Blog (ES)</a></li><li><a href="{BASE}/pt/#escaneo">Scan grátis</a></li>'),
+   f'<li><a href="{BASE}/pt/blog/">Blog</a></li><li><a href="{BASE}/pt/#escaneo">Scan grátis</a></li>'),
  "en": foot("en","We make your AI-built app ready to launch and get paid in Latin America.","Weekly newsletter (in Spanish): security, payments and launching AI-built apps.",
    f'<li><a href="{BASE}/en/privacy/">Privacy</a></li><li><a href="{BASE}/en/terms/">Terms</a></li>',
-   f'<li><a href="{BASE}/blog/">Blog (ES)</a></li><li><a href="{BASE}/en/#escaneo">Free scan</a></li>'),
+   f'<li><a href="{BASE}/en/blog/">Blog</a></li><li><a href="{BASE}/en/#escaneo">Free scan</a></li>'),
 }
 
 # ---------- HOME COPY ----------
@@ -224,11 +224,38 @@ def scan_block(lang, c, standalone=False):
 <details style="margin-top:2rem;max-width:760px"><summary>{c["priv"]}</summary><p>{c["privp"]} <a href="mailto:{MAIL}">{MAIL}</a>.</p>
 <form id="self-check"><h3>{st}</h3>{fs}<button class="btn p" type="submit">{b}</button></form><div id="self-out" class="report" hidden aria-live="polite"></div></details></div></section>'''
 
+# Blog posts. lang: es|pt|en. tkey groups translations of the same article (drives hreflang).
+# To add a PT/EN article: append a dict here and its HTML body to POST_BODIES in content.py (key = slug).
 POSTS = [
- ("mercado-pago-en-apps-lovable", "Cómo cobrar con Mercado Pago en una app hecha con Lovable (sin exponer tus claves)", "Guía paso a paso para integrar Mercado Pago Checkout Pro en una app de Lovable con Supabase Edge Functions, webhooks y claves seguras."),
- ("checklist-seguridad-apps-vibe-coding", "Checklist de seguridad para apps hechas con IA: 12 controles antes de lanzar", "Los 12 controles que tenés que revisar antes de lanzar una app hecha con Lovable, Bolt, Cursor o Replit, con datos de estudios reales."),
- ("stripe-no-funciona-en-mi-pais", "¿Stripe no está disponible en tu país? Opciones para cobrar en Latinoamérica", "Qué hacer si Stripe no abre cuentas en tu país: Mercado Pago, dLocal, Paddle, Lemon Squeezy y Whop comparados para creadores latinoamericanos."),
+ dict(lang="es", slug="mercado-pago-en-apps-lovable", tkey="mp-lovable", date="2026-10-31", title="Cómo cobrar con Mercado Pago en una app hecha con Lovable (sin exponer tus claves)", desc="Guía paso a paso para integrar Mercado Pago Checkout Pro en una app de Lovable con Supabase Edge Functions, webhooks y claves seguras."),
+ dict(lang="es", slug="checklist-seguridad-apps-vibe-coding", tkey="checklist", date="2026-10-31", title="Checklist de seguridad para apps hechas con IA: 12 controles antes de lanzar", desc="Los 12 controles que tenés que revisar antes de lanzar una app hecha con Lovable, Bolt, Cursor o Replit, con datos de estudios reales."),
+ dict(lang="es", slug="stripe-no-funciona-en-mi-pais", tkey="stripe-latam", date="2026-10-31", title="¿Stripe no está disponible en tu país? Opciones para cobrar en Latinoamérica", desc="Qué hacer si Stripe no abre cuentas en tu país: Mercado Pago, dLocal, Paddle, Lemon Squeezy y Whop comparados para creadores latinoamericanos."),
 ]
+BLOG_ROOT = {"es": "/blog/", "pt": "/pt/blog/", "en": "/en/blog/"}
+def post_path(p): return BLOG_ROOT[p["lang"]] + p["slug"] + "/"
+def post_alts(p): return {q["lang"]: post_path(q) for q in POSTS if q["tkey"] == p["tkey"]}
+def posts_for(lang):
+    """Native posts first, then Spanish originals with no translation in `lang`."""
+    native = [p for p in POSTS if p["lang"] == lang]
+    have = {p["tkey"] for p in native}
+    return native + [p for p in POSTS if p["lang"] == "es" and lang != "es" and p["tkey"] not in have]
+MONTHS = {"es": "ene feb mar abr may jun jul ago sep oct nov dic", "pt": "jan fev mar abr mai jun jul ago set out nov dez", "en": "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec"}
+def fdate(d, lang):
+    y, m, dd = d.split("-"); mo = MONTHS[lang].split()[int(m)-1]
+    return f"{mo} {int(dd)}, {y}" if lang == "en" else f"{int(dd)} {mo} {y}"
+BT = {
+ "es": dict(t="Blog de LaunchLatam: seguridad, cobros y lanzamiento de apps hechas con IA", d="Guías prácticas en español para lanzar y cobrar apps hechas con Lovable, Bolt, Cursor o Replit en Latinoamérica.", h1="Guías para lanzar y cobrar", other="", home="Inicio",
+   ch="¿Querés saber cómo está tu app?", cp="Escaneá tu repo gratis en segundos, sin crear cuenta.", cb="Escaneo gratis →", scan="/escaneo/", faq="Preguntas frecuentes"),
+ "pt": dict(t="Blog da LaunchLatam: segurança, pagamentos e lançamento de apps feitos com IA", d="Guias práticos para lançar e cobrar apps feitos com Lovable, Bolt, Cursor ou Replit no Brasil e na América Latina.", h1="Guias para lançar e cobrar", other="Em espanhol", home="Início",
+   ch="Quer saber como está o seu app?", cp="Escaneie seu repo grátis em segundos, sem criar conta.", cb="Scan grátis →", scan="/pt/#escaneo", faq="Perguntas frequentes"),
+ "en": dict(t="LaunchLatam blog: security, payments and launching AI-built apps", d="Practical guides to launch and get paid with apps built on Lovable, Bolt, Cursor or Replit in Latin America.", h1="Guides to launch and get paid", other="In Spanish", home="Home",
+   ch="Want to know how your app is doing?", cp="Scan your repo free in seconds, no account needed.", cb="Free scan →", scan="/en/#escaneo", faq="FAQ"),
+}
+def card(p, lang, hx="h3", tag=True):
+    la = "" if p["lang"] == lang else f' hreflang="{LOCALES[p["lang"]][0]}" lang="{LOCALES[p["lang"]][0]}"'
+    k = f'<p class="mono">Blog{" · ES" if p["lang"] != lang else ""}</p>' if tag else ""
+    st = ' style="font-size:1.4rem"' if hx == "h2" else ""
+    return f'<a class="card" href="{BASE}{post_path(p)}"{la}>{k}<{hx}{st}>{p["title"]}</{hx}><p class="muted">{p["desc"]}</p></a>'
 
 def home(lang):
     c = C[lang]; home_p = LOCALES[lang][1]
@@ -242,7 +269,8 @@ def home(lang):
     subs = "".join(f'<div class="sub"><div><h3>{a} · ${p}{c["mes"]}</h3><p class="muted" style="margin:0">{d}</p></div><a class="btn s" href="{W[k]}" rel="noopener">{c["sub"]}</a></div>' for a,p,d,k in c["subs"])
     subs += f'<div class="sub"><div><h3>{en} · ${ep}</h3><p class="muted" style="margin:0">{ed}</p></div><a class="btn s" href="{W[ek]}" rel="noopener">{ec}</a></div>'
     faq = "".join(f'<details><summary>{q}</summary><p>{a}</p></details>' for q,a in c["faq"])
-    blog = "".join(f'<a class="card" href="{BASE}/blog/{s}/"><p class="mono">Blog</p><h3>{t}</h3><p class="muted">{d}</p></a>' for s,t,d in POSTS)
+    blog = "".join(card(p, lang) for p in posts_for(lang)[:3])
+    if any(p["lang"] == lang for p in POSTS) and lang != "es": c = dict(c, bh={"pt":"Do blog","en":"From the blog"}[lang])
     body = f'''<div class="wrap hero"><div><span class="kicker mono">{c["kicker"]}</span><h1>{c["h1"]}</h1><p class="lede">{c["lede"]}</p>
 <div class="ctas"><a class="btn a" href="#escaneo">{c["c1"]} →</a><a class="btn s" href="#precios">{c["c2"]}</a></div></div>
 <div class="passport" aria-hidden="true"><p class="mono" style="margin:0 0 .4rem;opacity:.7">LAUNCH CHECK · LATAM</p>{rows}<div class="stamp">{c["stamp"]}</div></div></div>
@@ -275,22 +303,36 @@ for l in LOCALES:
     write(LOCALES[l][1], home(l)); urls.append((LOCALES[l][1], "1.0"))
 write("/escaneo/", page("es", "/escaneo/", "Escaneo de seguridad gratis para apps hechas con IA · LaunchLatam", "Escaneá gratis tu repo de GitHub hecho con Lovable, Bolt, Cursor o Replit: secretos expuestos, tablas sin RLS, cobros y páginas legales.", scan_block("es", C["es"], True) + f'<section id="precios"><div class="wrap"><a class="btn p" href="{BASE}/#precios">Ver precios →</a></div></section>'))
 urls.append(("/escaneo/","0.9"))
-# blog
-cards = "".join(f'<a class="card" href="{BASE}/blog/{s}/"><h2 style="font-size:1.4rem">{t}</h2><p class="muted">{d}</p></a>' for s,t,d in POSTS)
-write("/blog/", page("es", "/blog/", "Blog de LaunchLatam: seguridad, cobros y lanzamiento de apps hechas con IA", "Guías prácticas en español para lanzar y cobrar apps hechas con Lovable, Bolt, Cursor o Replit en Latinoamérica.", f'<div class="wrap" style="padding:3rem 0 5rem"><p class="mono">Blog</p><h1>Guías para lanzar y cobrar</h1><div class="cards">{cards}</div></div>'))
-urls.append(("/blog/","0.8"))
-for s,t,d in POSTS:
-    sch=[{"@context":"https://schema.org","@type":"Article","headline":t,"description":d,"inLanguage":"es-419","datePublished":"2026-10-31","dateModified":TODAY,"author":{"@type":"Person","name":"Rodrigo Pantoja Navajas"},"publisher":{"@type":"Organization","name":"LaunchLatam"},"mainEntityOfPage":f"{BASE}/blog/{s}/"}]
-    inner = f'<p class="mono"><a href="{BASE}/blog/">Blog</a> · 31 oct 2026</p><h1 style="font-size:clamp(2rem,4.5vw,3.4rem)">{t}</h1>' + POST_BODIES[s] + f'<div class="report"><h3>¿Querés saber cómo está tu app?</h3><p>Escaneá tu repo gratis en segundos, sin crear cuenta.</p><div class="ctas"><a class="btn a" href="{BASE}/escaneo/">Escaneo gratis →</a><a class="btn s" style="color:var(--sal);border-color:var(--sal)" href="{W["fix"]}" rel="noopener">Fix Pack $29</a></div></div>'
-    write(f"/blog/{s}/", prose_page("es", f"/blog/{s}/", t+" · LaunchLatam", d, inner, schema=sch)); urls.append((f"/blog/{s}/","0.7"))
+# blog (index per language + articles)
+BLOG_ALTS = dict(BLOG_ROOT)
+for lang in LOCALES:
+    bt = BT[lang]; ps = posts_for(lang)
+    nat = "".join(card(p, lang, "h2", False) for p in ps if p["lang"] == lang)
+    oth = "".join(card(p, lang, "h2") for p in ps if p["lang"] != lang)
+    inner = f'<div class="wrap" style="padding:3rem 0 5rem"><p class="mono">Blog</p><h1>{bt["h1"]}</h1>'
+    if nat: inner += f'<div class="cards">{nat}</div>'
+    if oth: inner += f'<h2 class="mono" style="margin-top:2.5rem">{bt["other"]}</h2><div class="cards">{oth}</div>'
+    inner += '</div>'
+    write(BLOG_ROOT[lang], page(lang, BLOG_ROOT[lang], bt["t"], bt["d"], inner, BLOG_ALTS)); urls.append((BLOG_ROOT[lang], "0.8", BLOG_ALTS))
+for p in POSTS:
+    lang = p["lang"]; bt = BT[lang]; path = post_path(p); alts = post_alts(p)
+    sch=[{"@context":"https://schema.org","@type":"Article","headline":p["title"],"description":p["desc"],"inLanguage":LOCALES[lang][0],"datePublished":p["date"],"dateModified":TODAY,"author":{"@type":"Person","name":"Rodrigo Pantoja Navajas"},"publisher":{"@type":"Organization","name":"LaunchLatam"},"mainEntityOfPage":BASE+path}]
+    inner = f'<p class="mono"><a href="{BASE}{BLOG_ROOT[lang]}">Blog</a> · {fdate(p["date"], lang)}</p><h1 style="font-size:clamp(2rem,4.5vw,3.4rem)">{p["title"]}</h1>' + POST_BODIES[p["slug"]] + f'<div class="report"><h3>{bt["ch"]}</h3><p>{bt["cp"]}</p><div class="ctas"><a class="btn a" href="{BASE}{bt["scan"]}">{bt["cb"]}</a><a class="btn s" style="color:var(--sal);border-color:var(--sal)" href="{W["fix"]}" rel="noopener">Fix Pack $29</a></div></div>'
+    write(path, prose_page(lang, path, p["title"]+" · LaunchLatam", p["desc"], inner, alts, schema=sch)); urls.append((path, "0.7", alts))
 for (lang, path, title, inner, alt) in LEGAL:
-    write(path, prose_page(lang, path, title+" · LaunchLatam", title+" de LaunchLatam" if lang=="es" else "LaunchLatam "+title, inner, alt)); urls.append((path,"0.3"))
+    write(path, prose_page(lang, path, title+" · LaunchLatam", title+" de LaunchLatam" if lang=="es" else "LaunchLatam "+title, inner, alt)); urls.append((path,"0.3",alt))
 write("/gracias/", page("es","/gracias/","Gracias por tu compra · LaunchLatam","Próximos pasos después de tu compra en LaunchLatam.", f'<div class="wrap prose" style="padding:3rem 0 5rem"><p class="mono">Pedido recibido</p><h1>Listo. Tu app ya está en la fila.</h1><p>Recibirás un correo de Whop con tu recibo. En las próximas 24 horas hábiles te escribimos desde <a href="mailto:{MAIL}">{MAIL}</a> para pedirte acceso de lectura al repositorio (como colaborador en GitHub, nunca con contraseñas).</p><p>Mientras tanto: no compartas tu clave <code>service_role</code> con nadie, ni con nosotros.</p><p><a class="btn p" href="{BASE}/">Volver al inicio</a></p></div>'))
 open(os.path.join(ROOT,"404.html"),"w").write(page("es","/404.html","Página no encontrada · LaunchLatam","Esta página no existe.", f'<div class="wrap prose" style="padding:4rem 0 6rem"><p class="mono">Error 404</p><h1>Esta ruta no pasó la aduana.</h1><p>La página que buscás no existe o cambió de lugar.</p><p><a class="btn p" href="{BASE}/">Ir al inicio</a> <a class="btn s" href="{BASE}/escaneo/">Escaneo gratis</a></p></div>').replace('<meta name="description"','<meta name="robots" content="noindex"><meta name="description"'))
 # sitemap / robots / llms
 sm = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">'
-for p,pr in urls:
-    extra = "".join(f'<xhtml:link rel="alternate" hreflang="{LOCALES[l][0]}" href="{BASE}{LOCALES[l][1]}"/>' for l in LOCALES) if p in [v[1] for v in LOCALES.values()] else ""
+HOME_ALTS = {l: LOCALES[l][1] for l in LOCALES}
+for u in urls:
+    p, pr = u[0], u[1]
+    al = u[2] if len(u) > 2 else (HOME_ALTS if p in HOME_ALTS.values() else None)
+    extra = ""
+    if al and len(al) > 1:
+        extra = "".join(f'<xhtml:link rel="alternate" hreflang="{LOCALES[l][0]}" href="{BASE}{q}"/>' for l, q in al.items())
+        if "es" in al: extra += f'<xhtml:link rel="alternate" hreflang="x-default" href="{BASE}{al["es"]}"/>'
     sm += f"<url><loc>{BASE}{p}</loc><lastmod>{TODAY}</lastmod><priority>{pr}</priority>{extra}</url>"
 write("/sitemap.xml", sm+"</urlset>")
 write("/robots.txt", f"User-agent: *\nAllow: /\n\n# AI crawlers welcome\nUser-agent: GPTBot\nAllow: /\nUser-agent: ClaudeBot\nAllow: /\nUser-agent: PerplexityBot\nAllow: /\nUser-agent: Google-Extended\nAllow: /\nUser-agent: OAI-SearchBot\nAllow: /\nUser-agent: ChatGPT-User\nAllow: /\nUser-agent: Perplexity-User\nAllow: /\nUser-agent: Applebot-Extended\nAllow: /\nUser-agent: Bingbot\nAllow: /\n\nSitemap: {BASE}/sitemap.xml\n")
@@ -310,8 +352,8 @@ llms = f"""# LaunchLatam
 
 ## Key pages
 - [Home (es)]({BASE}/) · [Português]({BASE}/pt/) · [English]({BASE}/en/)
-- [Blog]({BASE}/blog/)
-""" + "".join(f"- [{t}]({BASE}/blog/{s}/): {d}\n" for s,t,d in POSTS) + f"""
+- [Blog (es)]({BASE}/blog/) · [Blog (pt)]({BASE}/pt/blog/) · [Blog (en)]({BASE}/en/blog/)
+""" + "".join(f"- [{p['title']}]({BASE}{post_path(p)}) ({p['lang']}): {p['desc']}\n" for p in POSTS) + f"""
 ## FAQ
 """ + "".join(f"- **{q}** {a}\n" for q,a in C["en"]["faq"]) + f"""
 ## Preguntas frecuentes (es)

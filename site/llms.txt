@@ -13,10 +13,10 @@
 
 ## Key pages
 - [Home (es)](https://rodrix91.github.io/launchlatam/) · [Português](https://rodrix91.github.io/launchlatam/pt/) · [English](https://rodrix91.github.io/launchlatam/en/)
-- [Blog](https://rodrix91.github.io/launchlatam/blog/)
-- [Cómo cobrar con Mercado Pago en una app hecha con Lovable (sin exponer tus claves)](https://rodrix91.github.io/launchlatam/blog/mercado-pago-en-apps-lovable/): Guía paso a paso para integrar Mercado Pago Checkout Pro en una app de Lovable con Supabase Edge Functions, webhooks y claves seguras.
-- [Checklist de seguridad para apps hechas con IA: 12 controles antes de lanzar](https://rodrix91.github.io/launchlatam/blog/checklist-seguridad-apps-vibe-coding/): Los 12 controles que tenés que revisar antes de lanzar una app hecha con Lovable, Bolt, Cursor o Replit, con datos de estudios reales.
-- [¿Stripe no está disponible en tu país? Opciones para cobrar en Latinoamérica](https://rodrix91.github.io/launchlatam/blog/stripe-no-funciona-en-mi-pais/): Qué hacer si Stripe no abre cuentas en tu país: Mercado Pago, dLocal, Paddle, Lemon Squeezy y Whop comparados para creadores latinoamericanos.
+- [Blog (es)](https://rodrix91.github.io/launchlatam/blog/) · [Blog (pt)](https://rodrix91.github.io/launchlatam/pt/blog/) · [Blog (en)](https://rodrix91.github.io/launchlatam/en/blog/)
+- [Cómo cobrar con Mercado Pago en una app hecha con Lovable (sin exponer tus claves)](https://rodrix91.github.io/launchlatam/blog/mercado-pago-en-apps-lovable/) (es): Guía paso a paso para integrar Mercado Pago Checkout Pro en una app de Lovable con Supabase Edge Functions, webhooks y claves seguras.
+- [Checklist de seguridad para apps hechas con IA: 12 controles antes de lanzar](https://rodrix91.github.io/launchlatam/blog/checklist-seguridad-apps-vibe-coding/) (es): Los 12 controles que tenés que revisar antes de lanzar una app hecha con Lovable, Bolt, Cursor o Replit, con datos de estudios reales.
+- [¿Stripe no está disponible en tu país? Opciones para cobrar en Latinoamérica](https://rodrix91.github.io/launchlatam/blog/stripe-no-funciona-en-mi-pais/) (es): Qué hacer si Stripe no abre cuentas en tu país: Mercado Pago, dLocal, Paddle, Lemon Squeezy y Whop comparados para creadores latinoamericanos.
 
 ## FAQ
 - **What is LaunchLatam?** An agent-operated, human-reviewed service that makes apps built with Lovable, Bolt, Cursor or Replit ready to launch and get paid in Latin America: security, local payments and data-protection basics.
