@@ -114,7 +114,7 @@ C = {
         ("Lanzamiento Regional","499","pago único",["Todo Pro, para hasta 3 países","2 pasarelas de pago locales","Versión en español y portugués","Checklist de cumplimiento por país"],"l499","Lanzar en 3 países",False)],
  ess=("Lanzamiento Esencial","149","Seguridad completa + 1 cobro local + páginas legales básicas.","l149","Elegir Esencial"),
  subs=[("Mantenimiento Base","29","Escaneo semanal, parches de seguridad y dependencias al día.","m29"),("Mantenimiento Pro","79","Todo Base + monitoreo de cobros, cambios normativos y 2 h de mejoras al mes.","m79")],
- mes="/mes", sub="Suscribirme",
+ mes=" cada 30 días", sub="Suscribirme",
  fk="05 · Preguntas", fh="Preguntas frecuentes",
  faq=[("¿Qué es LaunchLatam?","Un servicio operado por agentes de IA y supervisado por una persona que deja apps hechas con Lovable, Bolt, Cursor o Replit listas para lanzar y cobrar en Latinoamérica: seguridad, pagos locales y lo básico de protección de datos."),
       ("¿El escaneo gratis es seguro para mi código?","Sí. Corre en tu navegador y lee solo repos públicos de GitHub mediante la API pública de GitHub. No guardamos ni recibimos tu código. Revisa el código del repo, no tu app en vivo ni tu base de datos."),
@@ -156,7 +156,7 @@ C = {
         ("Lançamento Regional","499","pagamento único",["Tudo do Pro, para até 3 países","2 gateways de pagamento locais","Versão em português e espanhol","Checklist de conformidade por país"],"l499","Lançar em 3 países",False)],
  ess=("Lançamento Essencial","149","Segurança completa + 1 pagamento local + páginas legais básicas.","l149","Escolher Essencial"),
  subs=[("Manutenção Base","29","Scan semanal, patches de segurança e dependências em dia.","m29"),("Manutenção Pro","79","Tudo do Base + monitoramento de pagamentos, mudanças regulatórias e 2 h de melhorias por mês.","m79")],
- mes="/mês", sub="Assinar",
+ mes=" a cada 30 dias", sub="Assinar",
  fk="05 · Perguntas", fh="Perguntas frequentes",
  faq=[("O que é a LaunchLatam?","Um serviço operado por agentes de IA e supervisionado por uma pessoa, que deixa apps feitos com Lovable, Bolt, Cursor ou Replit prontos para lançar e cobrar na América Latina."),
       ("O scan grátis é seguro para o meu código?","Sim. Ele roda no seu navegador e lê apenas repos públicos pela API pública do GitHub. Não recebemos nem guardamos seu código."),
@@ -197,7 +197,7 @@ C = {
         ("Regional Launch","499","one-time",["Everything in Pro, for up to 3 countries","2 local payment gateways","Spanish and Portuguese versions","Per-country compliance checklist"],"l499","Launch in 3 countries",False)],
  ess=("Essential Launch","149","Full security + 1 local payment method + basic legal pages.","l149","Choose Essential"),
  subs=[("Maintenance Base","29","Weekly scan, security patches, dependencies kept current.","m29"),("Maintenance Pro","79","Everything in Base + payment monitoring, regulatory changes and 2 h of improvements a month.","m79")],
- mes="/mo", sub="Subscribe",
+ mes=" every 30 days", sub="Subscribe",
  fk="05 · Questions", fh="FAQ",
  faq=[("What is LaunchLatam?","An agent-operated, human-reviewed service that makes apps built with Lovable, Bolt, Cursor or Replit ready to launch and get paid in Latin America: security, local payments and data-protection basics."),
       ("Is the free scan safe for my code?","Yes. It runs in your browser and only reads public repos via GitHub's public API. We never receive or store your code. It checks repo code, not your live app or database."),
@@ -367,8 +367,8 @@ llms = f"""# LaunchLatam
 - Essential Launch, $149: {W['l149']}
 - Launch Pro, $299: {W['l299']}
 - Regional Launch (up to 3 countries), $499: {W['l499']}
-- Maintenance Base, $29/month: {W['m29']}
-- Maintenance Pro, $79/month: {W['m79']}
+- Maintenance Base, $29 every 30 days: {W['m29']}
+- Maintenance Pro, $79 every 30 days: {W['m79']}
 
 ## Key pages
 - [Home (es)]({BASE}/) · [Português]({BASE}/pt/) · [English]({BASE}/en/)

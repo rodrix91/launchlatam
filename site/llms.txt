@@ -8,8 +8,8 @@
 - Essential Launch, $149: https://whop.com/checkout/plan_klbC3rVIhgyog
 - Launch Pro, $299: https://whop.com/checkout/plan_CcT1YHEXdjCOq
 - Regional Launch (up to 3 countries), $499: https://whop.com/checkout/plan_2WjdjdlCxW2uV
-- Maintenance Base, $29/month: https://whop.com/checkout/plan_GV6POEXZk97P9
-- Maintenance Pro, $79/month: https://whop.com/checkout/plan_aZyftwaVpIhup
+- Maintenance Base, $29 every 30 days: https://whop.com/checkout/plan_GV6POEXZk97P9
+- Maintenance Pro, $79 every 30 days: https://whop.com/checkout/plan_aZyftwaVpIhup
 
 ## Key pages
 - [Home (es)](https://rodrix91.github.io/launchlatam/) · [Português](https://rodrix91.github.io/launchlatam/pt/) · [English](https://rodrix91.github.io/launchlatam/en/)
