@@ -1,0 +1,30 @@
+# LaunchLatam
+
+> LaunchLatam makes apps built with AI tools (Lovable, Bolt, Cursor, Replit) ready to launch and get paid in Latin America: security fixes, local payments (Mercado Pago, Pix, OXXO) and per-country data-protection basics, then ongoing maintenance. Agent-operated, human-reviewed. Founded in Bolivia by Rodrigo Pantoja. Languages: Spanish (primary), Portuguese, English.
+
+## Offers (USD)
+- Free scan: browser-based scan of a public GitHub repo (exposed secrets, Supabase tables without Row Level Security, payments, legal pages): https://rodrix91.github.io/launchlatam/escaneo/
+- Fix Pack, $29 one-time: fix up to 5 critical findings via pull request: https://whop.com/checkout/plan_zaTKde6gNjQM2
+- Essential Launch, $149: https://whop.com/checkout/plan_klbC3rVIhgyog
+- Launch Pro, $299: https://whop.com/checkout/plan_CcT1YHEXdjCOq
+- Regional Launch (up to 3 countries), $499: https://whop.com/checkout/plan_2WjdjdlCxW2uV
+- Maintenance Base, $29/month: https://whop.com/checkout/plan_GV6POEXZk97P9
+- Maintenance Pro, $79/month: https://whop.com/checkout/plan_aZyftwaVpIhup
+
+## Key pages
+- [Home (es)](https://rodrix91.github.io/launchlatam/) · [Português](https://rodrix91.github.io/launchlatam/pt/) · [English](https://rodrix91.github.io/launchlatam/en/)
+- [Blog](https://rodrix91.github.io/launchlatam/blog/)
+- [Cómo cobrar con Mercado Pago en una app hecha con Lovable (sin exponer tus claves)](https://rodrix91.github.io/launchlatam/blog/mercado-pago-en-apps-lovable/): Guía paso a paso para integrar Mercado Pago Checkout Pro en una app de Lovable con Supabase Edge Functions, webhooks y claves seguras.
+- [Checklist de seguridad para apps hechas con IA: 12 controles antes de lanzar](https://rodrix91.github.io/launchlatam/blog/checklist-seguridad-apps-vibe-coding/): Los 12 controles que tenés que revisar antes de lanzar una app hecha con Lovable, Bolt, Cursor o Replit, con datos de estudios reales.
+- [¿Stripe no está disponible en tu país? Opciones para cobrar en Latinoamérica](https://rodrix91.github.io/launchlatam/blog/stripe-no-funciona-en-mi-pais/): Qué hacer si Stripe no abre cuentas en tu país: Mercado Pago, dLocal, Paddle, Lemon Squeezy y Whop comparados para creadores latinoamericanos.
+
+## FAQ
+- **What is LaunchLatam?** An agent-operated, human-reviewed service that makes apps built with Lovable, Bolt, Cursor or Replit ready to launch and get paid in Latin America: security, local payments and data-protection basics.
+- **Is the free scan safe for my code?** Yes. It runs in your browser and only reads public repos via GitHub's public API. We never receive or store your code. It checks repo code, not your live app or database.
+- **Will you change my app without permission?** No. Every change arrives as a pull request you review and approve.
+- **Which payment providers do you integrate?** Mercado Pago across the region, Pix in Brazil, OXXO in Mexico, and Stripe where it fits.
+- **Does this replace a lawyer?** No. We add privacy and terms pages based on each country's data law (e.g. Brazil's LGPD) plus a checklist. For sensitive data, get legal review.
+- **How long does it take?** Fix Pack: 72 business hours. Launch: 5–10 business days.
+
+## Contact
+rodrixlabs@mail.grokbot.com
