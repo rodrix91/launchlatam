@@ -1,6 +1,6 @@
 @font-face{font-family:"Bricolage";src:url(../fonts/bricolage.woff2) format("woff2");font-weight:400 800;font-display:swap}
 @font-face{font-family:"JBM";src:url(../fonts/jbmono.woff2) format("woff2");font-weight:400 700;font-display:swap}
-:root{--volcan:#1E1412;--volcan-2:#2A1C19;--arena:#F2DCC0;--arena-2:#E9CBA6;--achiote:#E2522B;--achiote-ink:#B83A17;--jade:#2F8F6B;--jade-l:#7FD1AE;--sal:#FFF6EA;--muted:#5E4A42;--line:#D9B992;
+:root{--volcan:#1E1412;--volcan-2:#2A1C19;--arena:#F2DCC0;--arena-2:#E9CBA6;--achiote:#E2522B;--achiote-ink:#B83A17;--achiote-btn:#BD3D19;--jade:#2F8F6B;--jade-l:#7FD1AE;--sal:#FFF6EA;--muted:#5E4A42;--line:#D9B992;
 --r:22px;--display:"Bricolage",ui-sans-serif,system-ui,sans-serif;--mono:"JBM",ui-monospace,Menlo,monospace}
 *{box-sizing:border-box}html{scroll-behavior:smooth}@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
 body{margin:0;background:var(--arena);color:var(--volcan);font:400 1.0625rem/1.6 var(--display);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
@@ -111,3 +111,5 @@ body{overflow-x:clip}
 .ticket.hot .price{border-color:rgba(242,220,192,.3)}
 .ticket p.mono{margin:0}
 html{overflow-x:clip}@media (max-width:900px){.stamp{right:8px}}
+.btn.a,.dock a.go,.ticket.hot .btn.p{background:var(--achiote-btn);border-color:var(--achiote-btn)}
+.btn.a:hover,.dock a.go:hover,.ticket.hot .btn.p:hover{background:#952E10;border-color:#952E10}
