@@ -93,33 +93,7 @@ create policy "leer la propia" on public.subscriptions
 """,
 }
 
-PRIV_ES = f"""<p class="mono">Última actualización: 31 de octubre de 2026</p><h1>Política de privacidad</h1>
-<p>LaunchLatam (“nosotros”) respeta tu privacidad. Esta política explica qué datos tratamos y por qué.</p>
-<h2>Qué datos recogemos</h2><ul><li><strong>Escaneo gratis:</strong> se ejecuta en tu navegador. El nombre del repositorio y su código se consultan directamente a GitHub y <strong>no</strong> se envían a nuestros servidores.</li><li><strong>Compras y boletín:</strong> los gestiona Whop (whop.com), que procesa tu nombre, email y datos de pago según su propia política de privacidad. Nosotros recibimos tu email, el producto comprado y los datos que escribas en el formulario de compra (por ejemplo, la URL de tu app).</li><li><strong>Correo:</strong> si nos escribís a {MAIL}, guardamos el intercambio para responderte.</li><li><strong>Acceso a tu repositorio:</strong> solo si compraste un servicio y nos invitás como colaborador. Lo usamos únicamente para el trabajo contratado y podés quitar el acceso cuando quieras.</li></ul>
-<h2>Qué no hacemos</h2><ul><li>No usamos cookies de seguimiento ni publicidad en este sitio.</li><li>No vendemos tus datos.</li><li>No te pedimos contraseñas ni la clave service_role de Supabase.</li></ul>
-<h2>Base legal y conservación</h2><p>Tratamos tus datos para cumplir el servicio que contrataste y, en el caso del boletín, con tu consentimiento. Conservamos los datos de clientes mientras dure la relación y hasta 5 años después por obligaciones contables.</p>
-<h2>Tus derechos</h2><p>Podés pedir acceso, corrección o eliminación de tus datos, y darte de baja del boletín en cualquier momento, escribiendo a {MAIL}. Si estás en Brasil, estos derechos se rigen por la LGPD; en Argentina, por la Ley 25.326; en México, por la LFPDPPP.</p>
-<h2>Proveedores</h2><p>GitHub (alojamiento del sitio y escaneo), Whop (pagos y boletín).</p>"""
-TERMS_ES = f"""<p class="mono">Última actualización: 31 de octubre de 2026</p><h1>Términos del servicio</h1>
-<h2>El servicio</h2><p>LaunchLatam revisa y modifica apps creadas con herramientas de IA para mejorar su seguridad, integrar pagos y agregar páginas legales básicas. El trabajo lo realizan agentes de IA con revisión humana y se entrega como pull request en tu repositorio. Vos decidís si lo aplicás.</p>
-<h2>Escaneo gratis</h2><p>Es automático, revisa solo el código de repos públicos y puede tener falsos positivos o pasar por alto fallas. No es una auditoría ni una garantía de seguridad.</p>
-<h2>Pagos y reembolsos</h2><p>Los pagos se procesan con Whop en USD. Si no entregamos las correcciones acordadas del Fix Pack o del Lanzamiento, te reembolsamos el monto pagado por ese servicio. Las suscripciones de mantenimiento se pueden cancelar en cualquier momento desde Whop y no se cobran meses siguientes.</p>
-<h2>Tus responsabilidades</h2><p>Sos responsable de revisar y aprobar los cambios, de tus credenciales y de cumplir la ley aplicable a tu negocio. Las páginas legales que entregamos son plantillas base y no constituyen asesoramiento jurídico.</p>
-<h2>Límite de responsabilidad</h2><p>Nuestra responsabilidad total por cualquier reclamo se limita al monto que pagaste por el servicio en cuestión durante los últimos 12 meses.</p>
-<h2>Contacto</h2><p>{MAIL}</p>"""
-PRIV_EN = f"""<p class="mono">Last updated: October 31, 2026</p><h1>Privacy policy</h1>
-<p>The free scan runs in your browser: repo names and code are fetched directly from GitHub and are <strong>not</strong> sent to our servers. Purchases and newsletter signups are handled by Whop (whop.com), which processes your name, email and payment data under its own policy; we receive your email, the product bought, and anything you type in the checkout form. If you email {MAIL}, we keep the thread to reply. Repository access is used only for work you purchased and can be revoked at any time.</p>
-<p>We use no tracking or advertising cookies, we don't sell data, and we never ask for passwords or your Supabase service_role key. You can request access, correction or deletion, or unsubscribe, by emailing {MAIL}. Rights are governed by applicable law, including Brazil's LGPD, Argentina's Law 25.326 and Mexico's LFPDPPP. Processors: GitHub (hosting), Whop (payments, newsletter).</p>"""
-TERMS_EN = f"""<p class="mono">Last updated: October 31, 2026</p><h1>Terms of service</h1>
-<p>LaunchLatam reviews and modifies AI-built apps to improve security, integrate payments and add basic legal pages. Work is done by AI agents with human review and delivered as a pull request you choose whether to merge.</p>
-<p>The free scan is automated, covers public repo code only, and may produce false positives or miss issues. It is not an audit or a security guarantee.</p>
-<p>Payments are processed by Whop in USD. If we don't deliver the agreed fixes for a Fix Pack or Launch, we refund that service. Maintenance subscriptions can be canceled anytime in Whop. Legal pages we provide are templates, not legal advice. Our total liability is limited to what you paid for the service in the last 12 months. Contact: {MAIL}.</p>"""
-LEGAL = [
- ("es","/privacidad/","Política de privacidad",PRIV_ES,{"es":"/privacidad/","en":"/en/privacy/"}),
- ("es","/terminos/","Términos del servicio",TERMS_ES,{"es":"/terminos/","en":"/en/terms/"}),
- ("en","/en/privacy/","Privacy policy",PRIV_EN,{"es":"/privacidad/","en":"/en/privacy/"}),
- ("en","/en/terms/","Terms of service",TERMS_EN,{"es":"/terminos/","en":"/en/terms/"}),
-]
+# Legal pages are generated from /workspace/quiposa/legal/*.md (see build.py LEGAL_DOCS).
 
 # Per-article FAQ (rendered visibly on the article and as FAQPage JSON-LD). Key = slug.
 POST_FAQ = {
