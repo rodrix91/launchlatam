@@ -20,9 +20,11 @@ SRC = {
  "stripe": "https://stripe.com/global",
 }
 LOGO = '<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="4 3"/><path d="M11 25 L20 10 L29 25 Z" fill="#E2522B"/><path d="M14 29h12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>'
+PERSON = {"@type":"Person","name":"Rodrigo Pantoja Navajas","jobTitle":"Data Science Manager","url":BASE+"/sobre/","sameAs":["https://x.com/RODRX_NOVA","https://www.linkedin.com/in/rodrigo-p-625862153"]}
 LOCALES = {"es": ("es-419", "/"), "pt": ("pt-BR", "/pt/"), "en": ("en", "/en/")}
 
-def page(lang, path, title, desc, body, alts=None, schema=None, dock=None):
+def page(lang, path, title, desc, body, alts=None, schema=None, dock=None, og=None):
+    ogi = BASE + (og or "/assets/og.png")
     hl, _ = LOCALES[lang]
     url = BASE + path
     alts = alts or {lang: path}
@@ -53,8 +55,8 @@ def page(lang, path, title, desc, body, alts=None, schema=None, dock=None):
 <meta name="theme-color" content="#1E1412"><link rel="icon" href="{BASE}/assets/favicon.svg" type="image/svg+xml">
 <link rel="preload" href="{BASE}/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{BASE}/assets/site.css">
-<meta property="og:type" content="website"><meta property="og:site_name" content="LaunchLatam"><meta property="og:title" content="{html.escape(title)}"><meta property="og:description" content="{html.escape(desc)}"><meta property="og:url" content="{url}"><meta property="og:image" content="{BASE}/assets/og.png"><meta property="og:locale" content="{hl.replace('-','_')}">
-<meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{BASE}/assets/og.png">
+<meta property="og:type" content="website"><meta property="og:site_name" content="LaunchLatam"><meta property="og:title" content="{html.escape(title)}"><meta property="og:description" content="{html.escape(desc)}"><meta property="og:url" content="{url}"><meta property="og:image" content="{ogi}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:locale" content="{hl.replace('-','_')}">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{ogi}">
 {sch}<script src="{BASE}/assets/scan.js" defer></script></head><body>
 <a class="skip" href="#main">{ {"es":"Saltar al contenido","pt":"Pular para o conteúdo","en":"Skip to content"}[lang] }</a>
 <header class="wrap mast"><a class="brand" href="{BASE}{home}">{LOGO}<span>LaunchLatam</span></a><div class="lang" aria-label="Idioma / Language">{langs}</div></header>
@@ -72,13 +74,13 @@ def foot(lang, tag, news, legal, links):
 FOOT = {
  "es": foot("es","Dejamos tu app hecha con IA lista para lanzar y cobrar en Latinoamérica.","Boletín semanal: seguridad, cobros y lanzamiento de apps hechas con IA. Sin spam, te das de baja cuando quieras.",
    f'<li><a href="{BASE}/privacidad/">Privacidad</a></li><li><a href="{BASE}/terminos/">Términos</a></li>',
-   f'<li><a href="{BASE}/blog/">Blog</a></li><li><a href="{BASE}/escaneo/">Escaneo gratis</a></li><li><a href="{BASE}/llms.txt">llms.txt</a></li>'),
+   f'<li><a href="{BASE}/blog/">Blog</a></li><li><a href="{BASE}/sobre/">Sobre nosotros</a></li><li><a href="{BASE}/escaneo/">Escaneo gratis</a></li><li><a href="{BASE}/llms.txt">llms.txt</a></li>'),
  "pt": foot("pt","Deixamos seu app feito com IA pronto para lançar e cobrar na América Latina.","Boletim semanal (em espanhol): segurança, pagamentos e lançamento de apps feitos com IA.",
    f'<li><a href="{BASE}/en/privacy/">Privacidade (EN)</a></li><li><a href="{BASE}/en/terms/">Termos (EN)</a></li>',
-   f'<li><a href="{BASE}/pt/blog/">Blog</a></li><li><a href="{BASE}/pt/#escaneo">Scan grátis</a></li>'),
+   f'<li><a href="{BASE}/pt/blog/">Blog</a></li><li><a href="{BASE}/pt/sobre/">Sobre nós</a></li><li><a href="{BASE}/pt/#escaneo">Scan grátis</a></li>'),
  "en": foot("en","We make your AI-built app ready to launch and get paid in Latin America.","Weekly newsletter (in Spanish): security, payments and launching AI-built apps.",
    f'<li><a href="{BASE}/en/privacy/">Privacy</a></li><li><a href="{BASE}/en/terms/">Terms</a></li>',
-   f'<li><a href="{BASE}/en/blog/">Blog</a></li><li><a href="{BASE}/en/#escaneo">Free scan</a></li>'),
+   f'<li><a href="{BASE}/en/blog/">Blog</a></li><li><a href="{BASE}/en/about/">About</a></li><li><a href="{BASE}/en/#escaneo">Free scan</a></li>'),
 }
 
 # ---------- HOME COPY ----------
@@ -294,10 +296,11 @@ def write(path, content):
     os.makedirs(os.path.dirname(fp), exist_ok=True)
     open(fp, "w", encoding="utf-8").write(content)
 
-def prose_page(lang, path, title, desc, inner, alts=None, schema=None):
-    return page(lang, path, title, desc, f'<article class="wrap prose" style="padding:3rem 0 5rem">{inner}</article>', alts, schema)
+def prose_page(lang, path, title, desc, inner, alts=None, schema=None, og=None):
+    return page(lang, path, title, desc, f'<article class="wrap prose" style="padding:3rem 0 5rem">{inner}</article>', alts, schema, og=og)
 
-from content import POST_BODIES, LEGAL, POST_FAQ
+from content import POST_BODIES, LEGAL, POST_FAQ, ABOUT
+import sys; sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "tools")); import og
 urls = []
 for l in LOCALES:
     write(LOCALES[l][1], home(l)); urls.append((LOCALES[l][1], "1.0"))
@@ -316,7 +319,7 @@ for lang in LOCALES:
     write(BLOG_ROOT[lang], page(lang, BLOG_ROOT[lang], bt["t"], bt["d"], inner, BLOG_ALTS)); urls.append((BLOG_ROOT[lang], "0.8", BLOG_ALTS))
 for p in POSTS:
     lang = p["lang"]; bt = BT[lang]; path = post_path(p); alts = post_alts(p)
-    sch=[{"@context":"https://schema.org","@type":"Article","headline":p["title"],"description":p["desc"],"inLanguage":LOCALES[lang][0],"datePublished":p["date"],"dateModified":TODAY,"author":{"@type":"Person","name":"Rodrigo Pantoja Navajas"},"publisher":{"@type":"Organization","name":"LaunchLatam"},"mainEntityOfPage":BASE+path}]
+    sch=[{"@context":"https://schema.org","@type":"Article","headline":p["title"],"description":p["desc"],"inLanguage":LOCALES[lang][0],"datePublished":p["date"],"dateModified":TODAY,"author":PERSON,"publisher":{"@type":"Organization","name":"LaunchLatam"},"mainEntityOfPage":BASE+path}]
     faqs = POST_FAQ.get(p["slug"], [])
     sch.append({"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
         {"@type":"ListItem","position":1,"name":bt["home"],"item":BASE+LOCALES[lang][1]},
@@ -325,7 +328,17 @@ for p in POSTS:
     if faqs: sch.append({"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":q,"acceptedAnswer":{"@type":"Answer","text":ans}} for q,ans in faqs]})
     faq_html = (f'<h2>{bt["faq"]}</h2>' + "".join(f'<details><summary>{q}</summary><p>{ans}</p></details>' for q,ans in faqs)) if faqs else ""
     inner = f'<nav aria-label="Breadcrumb" class="mono"><a href="{BASE}{LOCALES[lang][1]}">{bt["home"]}</a> / <a href="{BASE}{BLOG_ROOT[lang]}">Blog</a> · {fdate(p["date"], lang)}</nav><h1 style="font-size:clamp(2rem,4.5vw,3.4rem)">{p["title"]}</h1>' + POST_BODIES[p["slug"]] + faq_html + f'<div class="report"><h3>{bt["ch"]}</h3><p>{bt["cp"]}</p><div class="ctas"><a class="btn a" href="{BASE}{bt["scan"]}">{bt["cb"]}</a><a class="btn s" style="color:var(--sal);border-color:var(--sal)" href="{W["fix"]}" rel="noopener">Fix Pack $29</a></div></div>'
-    write(path, prose_page(lang, path, p["title"]+" · LaunchLatam", p["desc"], inner, alts, schema=sch)); urls.append((path, "0.7", alts))
+    ogp = f"/assets/og/{lang}-{p['slug']}.png"
+    og.make(ROOT + ogp, "LaunchLatam · Blog", p["title"], f"rodrix91.github.io/launchlatam · {fdate(p['date'], lang)}", {"es":"APTA","pt":"APTO","en":"CLEARED"}[lang])
+    sch[0]["image"] = BASE + ogp
+    write(path, prose_page(lang, path, p["title"]+" · LaunchLatam", p["desc"], inner, alts, schema=sch, og=ogp)); urls.append((path, "0.7", alts))
+ABOUT_ALTS = {"es": "/sobre/", "pt": "/pt/sobre/", "en": "/en/about/"}
+for lang, (title, desc, kick, inner) in ABOUT.items():
+    path = ABOUT_ALTS[lang]; ogp = f"/assets/og/{lang}-about.png"
+    og.make(ROOT + ogp, "LaunchLatam · " + kick, title, "rodrix91.github.io/launchlatam", {"es":"APTA","pt":"APTO","en":"CLEARED"}[lang])
+    sch = [{"@context":"https://schema.org","@type":"AboutPage","name":title,"url":BASE+path,"inLanguage":LOCALES[lang][0],"mainEntity":{"@id":BASE+"/sobre/#rodrigo"}},
+           dict({"@context":"https://schema.org","@id":BASE+"/sobre/#rodrigo"}, **PERSON, worksFor={"@type":"Organization","name":"LaunchLatam","url":BASE+"/"}, address={"@type":"PostalAddress","addressCountry":"BO"})]
+    write(path, prose_page(lang, path, title+" · LaunchLatam", desc, inner, ABOUT_ALTS, sch, og=ogp)); urls.append((path, "0.5", ABOUT_ALTS))
 for (lang, path, title, inner, alt) in LEGAL:
     write(path, prose_page(lang, path, title+" · LaunchLatam", title+" de LaunchLatam" if lang=="es" else "LaunchLatam "+title, inner, alt)); urls.append((path,"0.3",alt))
 write("/gracias/", page("es","/gracias/","Gracias por tu compra · LaunchLatam","Próximos pasos después de tu compra en LaunchLatam.", f'<div class="wrap prose" style="padding:3rem 0 5rem"><p class="mono">Pedido recibido</p><h1>Listo. Tu app ya está en la fila.</h1><p>Recibirás un correo de Whop con tu recibo. En las próximas 24 horas hábiles te escribimos desde <a href="mailto:{MAIL}">{MAIL}</a> para pedirte acceso de lectura al repositorio (como colaborador en GitHub, nunca con contraseñas).</p><p>Mientras tanto: no compartas tu clave <code>service_role</code> con nadie, ni con nosotros.</p><p><a class="btn p" href="{BASE}/">Volver al inicio</a></p></div>'))

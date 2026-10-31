@@ -139,3 +139,35 @@ POST_FAQ = {
  ("¿Qué es un merchant of record?", "Un proveedor como Paddle, Lemon Squeezy o Whop que vende en tu nombre, cobra los impuestos de cada país y te paga. Cobra comisiones más altas y revisa tu negocio antes de aprobarte."),
 ],
 }
+
+# About pages (es /sobre/, pt /pt/sobre/, en /en/about/): title, meta description, kicker, HTML
+_X = "https://x.com/RODRX_NOVA"; _LI = "https://www.linkedin.com/in/rodrigo-p-625862153"
+def _about(k, h1, lede, h_who, who, h_how, how, h_not, nots, h_c, contact, cta, scan):
+    return f"""<p class="mono">{k}</p><h1>{h1}</h1><p style="font-size:1.2rem">{lede}</p>
+<h2>{h_who}</h2><p>{who}</p><p class="mono"><a href="{_X}" rel="me noopener">X · @RODRX_NOVA ↗</a> · <a href="{_LI}" rel="me noopener">LinkedIn ↗</a></p>
+<h2>{h_how}</h2><ol>{"".join(f"<li>{x}</li>" for x in how)}</ol>
+<h2>{h_not}</h2><ul>{"".join(f"<li>{x}</li>" for x in nots)}</ul>
+<h2>{h_c}</h2><p>{contact} <a href="mailto:{MAIL}">{MAIL}</a>.</p><p><a class="btn a" href="{B}{scan}">{cta}</a></p>"""
+ABOUT = {
+"es": ("Sobre LaunchLatam", "Quién está detrás de LaunchLatam y cómo trabajamos: agentes de IA con revisión humana para lanzar y cobrar apps hechas con IA en Latinoamérica.", "Sobre nosotros",
+ _about("Sobre nosotros", "Una aduana chica, <em>con un humano al final de la fila.</em>",
+  "LaunchLatam deja apps hechas con Lovable, Bolt, Cursor o Replit listas para lanzar y cobrar en Latinoamérica: seguridad, pagos locales y lo básico de protección de datos.",
+  "Quién está detrás", "LaunchLatam nace en Bolivia, de Rodrigo Pantoja Navajas, data scientist manager que construye con agentes de IA todos los días. Todavía no tenemos clientes que mostrar: preferimos decírtelo a inventarlos.",
+  "Cómo trabajamos", ["Los agentes de IA escanean tu repo y preparan el primer borrador de cada corrección.", "Una persona revisa cada cambio antes de que llegue a tu repositorio.", "Todo llega como pull request: vos decidís si lo aplicás."],
+  "Lo que no hacemos", ["No te pedimos contraseñas ni la clave service_role.", "No usamos cookies de seguimiento ni publicidad.", "No inventamos testimonios ni clientes."],
+  "Contacto", "Escribinos a", "Escaneo gratis →", "/escaneo/")),
+"pt": ("Sobre a LaunchLatam", "Quem está por trás da LaunchLatam e como trabalhamos: agentes de IA com revisão humana para lançar e cobrar apps feitos com IA na América Latina.", "Sobre nós",
+ _about("Sobre nós", "Uma alfândega pequena, <em>com um humano no fim da fila.</em>",
+  "A LaunchLatam deixa apps feitos com Lovable, Bolt, Cursor ou Replit prontos para lançar e cobrar na América Latina: segurança, pagamentos locais e o básico da LGPD.",
+  "Quem está por trás", "A LaunchLatam nasceu na Bolívia, criada por Rodrigo Pantoja Navajas, gerente de ciência de dados que constrói com agentes de IA todos os dias. Ainda não temos clientes para mostrar, e preferimos dizer isso a inventá-los.",
+  "Como trabalhamos", ["Agentes de IA escaneiam seu repo e preparam o primeiro rascunho de cada correção.", "Uma pessoa revisa cada mudança antes de chegar ao seu repositório.", "Tudo chega como pull request: você decide se aplica."],
+  "O que não fazemos", ["Não pedimos senhas nem a chave service_role.", "Não usamos cookies de rastreamento nem publicidade.", "Não inventamos depoimentos nem clientes."],
+  "Contato", "Escreva para", "Scan grátis →", "/pt/#escaneo")),
+"en": ("About LaunchLatam", "Who is behind LaunchLatam and how we work: AI agents with human review to launch and get paid with AI-built apps in Latin America.", "About",
+ _about("About", "A small customs office, <em>with a human at the end of the line.</em>",
+  "LaunchLatam makes apps built with Lovable, Bolt, Cursor or Replit ready to launch and get paid in Latin America: security, local payments and data-protection basics.",
+  "Who's behind it", "LaunchLatam was started in Bolivia by Rodrigo Pantoja Navajas, a data science manager who builds with AI agents every day. We don't have customers to show yet, and we'd rather say so than invent them.",
+  "How we work", ["AI agents scan your repo and draft each fix.", "A human reviews every change before it reaches your repository.", "Everything arrives as a pull request: you decide whether to merge."],
+  "What we don't do", ["We never ask for passwords or your service_role key.", "No tracking or advertising cookies.", "No made-up testimonials or customers."],
+  "Contact", "Email us at", "Free scan →", "/en/#escaneo")),
+}
