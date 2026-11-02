@@ -1,0 +1,62 @@
+# LaunchLatam
+
+> LaunchLatam makes apps built with AI tools (Lovable, Bolt, Cursor, Replit) ready to launch and get paid in Latin America: security fixes, local payments (Mercado Pago, Pix, OXXO) and per-country data-protection basics, then ongoing maintenance. Agent-operated, with review and approval before any change is applied to the client's app. Founded in Bolivia by Rodrigo Pantoja. Languages: Spanish (primary), Portuguese, English.
+
+## Offers (USD)
+- Free scan: browser-based scan of a public GitHub repo (exposed secrets, Supabase tables without Row Level Security, payments, legal pages): https://rodrix91.github.io/launchlatam/escaneo/
+- Fix Pack, $29 one-time: fix up to 5 critical findings via pull request: https://whop.com/checkout/plan_zaTKde6gNjQM2
+- Essential Launch, $149: https://whop.com/checkout/plan_klbC3rVIhgyog
+- Launch Pro, $299: https://whop.com/checkout/plan_CcT1YHEXdjCOq
+- Regional Launch (up to 3 countries), $499: https://whop.com/checkout/plan_2WjdjdlCxW2uV
+- Maintenance Base, $29 every 30 days: https://whop.com/checkout/plan_GV6POEXZk97P9
+- Maintenance Pro, $79 every 30 days: https://whop.com/checkout/plan_aZyftwaVpIhup
+
+## Key pages
+- [Home (es)](https://rodrix91.github.io/launchlatam/) · [Português](https://rodrix91.github.io/launchlatam/pt/) · [English](https://rodrix91.github.io/launchlatam/en/)
+- [Blog (es)](https://rodrix91.github.io/launchlatam/blog/) · [Blog (pt)](https://rodrix91.github.io/launchlatam/pt/blog/) · [Blog (en)](https://rodrix91.github.io/launchlatam/en/blog/)
+- [RLS en Supabase para apps de Lovable: cómo saber si tu base está abierta y cerrarla paso a paso](https://rodrix91.github.io/launchlatam/blog/rls-supabase-lovable/) (es): Cómo comprobar si las tablas de tu app de Lovable están expuestas, activar Row Level Security con políticas correctas y evitar los errores más comunes, con datos y fuentes.
+- [Cómo cobrar con Mercado Pago en una app hecha con Lovable (sin exponer tus claves)](https://rodrix91.github.io/launchlatam/blog/mercado-pago-en-apps-lovable/) (es): Guía paso a paso para integrar Mercado Pago Checkout Pro en una app de Lovable con Supabase Edge Functions, webhooks y claves seguras.
+- [Checklist de seguridad para apps hechas con IA: 12 controles antes de lanzar](https://rodrix91.github.io/launchlatam/blog/checklist-seguridad-apps-vibe-coding/) (es): Los 12 controles que tenés que revisar antes de lanzar una app hecha con Lovable, Bolt, Cursor o Replit, con datos de estudios reales.
+- [¿Stripe no está disponible en tu país? Opciones para cobrar en Latinoamérica](https://rodrix91.github.io/launchlatam/blog/stripe-no-funciona-en-mi-pais/) (es): Qué hacer si Stripe no abre cuentas en tu país: Mercado Pago, dLocal, Paddle, Lemon Squeezy y Whop comparados para creadores latinoamericanos.
+
+## FAQ
+- **What is LaunchLatam?** An agent-operated service, with review and approval before any change is applied to your app, that makes apps built with Lovable, Bolt, Cursor or Replit ready to launch and get paid in Latin America: security, local payments and data-protection basics.
+- **Is the free scan safe for my code?** Yes. It runs in your browser and only reads public repos via GitHub's public API. We never receive or store your code. It checks repo code, not your live app or database.
+- **Will you change my app without permission?** No. Every change arrives as a pull request you review and approve.
+- **Which payment providers do you integrate?** Mercado Pago across the region, Pix in Brazil, OXXO in Mexico, and Stripe where it fits.
+- **Does this replace a lawyer?** No. We add privacy and terms pages based on each country's data law (e.g. Brazil's LGPD) plus a checklist. For sensitive data, get legal review.
+- **How long does it take?** Fix Pack: 72 business hours. Launch: 5–10 business days.
+
+## Preguntas frecuentes (es)
+- **¿Qué es LaunchLatam?** Un servicio operado por agentes de IA, con revisión y aprobación antes de aplicar cualquier cambio en tu app, que deja apps hechas con Lovable, Bolt, Cursor o Replit listas para lanzar y cobrar en Latinoamérica: seguridad, pagos locales y lo básico de protección de datos.
+- **¿El escaneo gratis es seguro para mi código?** Sí. Corre en tu navegador y lee solo repos públicos de GitHub mediante la API pública de GitHub. No guardamos ni recibimos tu código. Revisa el código del repo, no tu app en vivo ni tu base de datos.
+- **¿Tocan mi app sin permiso?** No. Todo cambio llega como pull request en tu repositorio. Vos lo revisás y lo aprobás. Nunca te pedimos la clave service_role ni contraseñas por correo.
+- **¿Qué pasarelas de pago integran?** Mercado Pago (Argentina, México, Brasil, Chile, Colombia, Perú, Uruguay), Pix en Brasil, OXXO en México y Stripe donde tenga sentido. Elegimos según tu país y el de tus clientes.
+- **¿Esto reemplaza a un abogado?** No. Agregamos páginas de privacidad y términos basadas en la ley de datos de cada país (por ejemplo LGPD en Brasil o Ley 25.326 en Argentina) y una checklist. Para casos sensibles, como salud o finanzas, te recomendamos revisión legal.
+- **¿Cuánto tarda?** El Fix Pack, 72 horas hábiles. Un lanzamiento, de 5 a 10 días hábiles según países y pasarelas.
+- **¿Y si no quedo conforme?** Si no corregimos las fallas acordadas, te devolvemos el dinero del Fix Pack. Las condiciones están en los términos.
+
+## Perguntas frequentes (pt)
+- **O que é a LaunchLatam?** Um serviço operado por agentes de IA, com revisão e aprovação antes de aplicar qualquer mudança no seu app, que deixa apps feitos com Lovable, Bolt, Cursor ou Replit prontos para lançar e cobrar na América Latina.
+- **O scan grátis é seguro para o meu código?** Sim. Ele roda no seu navegador e lê apenas repos públicos pela API pública do GitHub. Não recebemos nem guardamos seu código.
+- **Vocês mexem no app sem permissão?** Não. Toda mudança chega como pull request no seu repositório, e você aprova.
+- **Quais meios de pagamento vocês integram?** Pix e Mercado Pago no Brasil, Mercado Pago no resto da região, OXXO no México e Stripe quando faz sentido.
+- **Isso substitui um advogado?** Não. Criamos páginas de privacidade e termos com base na LGPD e um checklist. Para dados sensíveis, recomendamos revisão jurídica.
+- **Quanto tempo leva?** Fix Pack: 72 horas úteis. Lançamento: 5 a 10 dias úteis.
+
+## Answers from our articles (es)
+- **¿Cómo sé si mi app de Lovable tiene la base de datos abierta?** Ejecutá en el SQL Editor de Supabase: select tablename, rowsecurity from pg_tables where schemaname = 'public'. Toda tabla con rowsecurity = false está abierta para cualquiera que tenga la clave anon, que es pública. También podés probar con curl usando la clave anon contra una tabla privada. Source: https://rodrix91.github.io/launchlatam/blog/rls-supabase-lovable/
+- **¿Supabase activa RLS automáticamente?** En las tablas creadas desde el Table Editor, sí. En las creadas por SQL o por API, que es como trabajan los agentes de IA, no: hay que ejecutar alter table ... enable row level security en cada una. Source: https://rodrix91.github.io/launchlatam/blog/rls-supabase-lovable/
+- **¿Alcanza con activar RLS?** No. Con RLS activado y sin políticas nadie accede; después necesitás una política por operación filtrada por auth.uid(), quitar los permisos de anon que no uses y evitar using (true) en datos privados. Source: https://rodrix91.github.io/launchlatam/blog/rls-supabase-lovable/
+- **¿Puedo poner el access token de Mercado Pago en el frontend de Lovable?** No. El access token es secreto: con él se pueden crear cobros y leer pagos de tu cuenta. Guardalo como secreto en Supabase (MP_ACCESS_TOKEN) y usalo solo desde una Edge Function. En el frontend solo va la public key. Source: https://rodrix91.github.io/launchlatam/blog/mercado-pago-en-apps-lovable/
+- **¿Cómo sé si un pago de Mercado Pago fue aprobado?** Con el webhook, no con la URL de regreso. Consultá el pago en la API de Mercado Pago con su id, activá el plan solo si el status es approved y validá la firma del encabezado x-signature. Source: https://rodrix91.github.io/launchlatam/blog/mercado-pago-en-apps-lovable/
+- **¿Dónde se define el precio del producto?** En el servidor, dentro de la Edge Function que crea la preferencia de pago, para que nadie pueda cambiarlo desde el navegador. Source: https://rodrix91.github.io/launchlatam/blog/mercado-pago-en-apps-lovable/
+- **¿La clave anon de Supabase es secreta?** No. Es pública por diseño. Lo que protege tus datos es Row Level Security con políticas que filtren por auth.uid() en cada tabla. Source: https://rodrix91.github.io/launchlatam/blog/checklist-seguridad-apps-vibe-coding/
+- **¿Qué hago si mi clave service_role estuvo en el repositorio?** Rotala de inmediato en Supabase, sacala del código y del historial, y usala solo del lado del servidor. Source: https://rodrix91.github.io/launchlatam/blog/checklist-seguridad-apps-vibe-coding/
+- **¿Qué controles revisa el escaneo gratis?** Los puntos 1, 2, 5, 6, 7, 10, 11 y 12 de la checklist, en cualquier repo público de GitHub, desde tu navegador. Para repos privados hay un chequeo guiado. Source: https://rodrix91.github.io/launchlatam/blog/checklist-seguridad-apps-vibe-coding/
+- **¿En qué países de Latinoamérica abre cuentas locales Stripe?** Según la página de disponibilidad de Stripe, solo en México y Brasil. Source: https://rodrix91.github.io/launchlatam/blog/stripe-no-funciona-en-mi-pais/
+- **¿Qué uso si vendo dentro de un país con Mercado Pago?** Mercado Pago: tus clientes ya lo usan y pueden pagar con saldo, tarjeta local o efectivo. Necesitás cuenta en el país donde cobrás. Source: https://rodrix91.github.io/launchlatam/blog/stripe-no-funciona-en-mi-pais/
+- **¿Qué es un merchant of record?** Un proveedor como Paddle, Lemon Squeezy o Whop que vende en tu nombre, cobra los impuestos de cada país y te paga. Cobra comisiones más altas y revisa tu negocio antes de aprobarte. Source: https://rodrix91.github.io/launchlatam/blog/stripe-no-funciona-en-mi-pais/
+
+## Contact
+rodrixlabs@mail.grokbot.com
