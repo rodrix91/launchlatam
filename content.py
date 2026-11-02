@@ -5,6 +5,80 @@ SYM = "https://www.symbioticsec.ai/blog/we-scanned-1-072-vibe-coded-apps-98-had-
 CVE = "https://mattpalmer.io/posts/2025/05/statement-on-CVE-2025-48757/"
 
 POST_BODIES = {
+"rls-supabase-lovable": f"""
+<div class="report" style="margin:1.5rem 0"><p><strong>Respuesta corta:</strong> en una app de Lovable con Supabase, la clave <code>anon</code> que va en el navegador es pública. Lo único que impide que cualquiera lea o modifique tus tablas es Row Level Security (RLS). Revisá que cada tabla del esquema <code>public</code> tenga RLS activado, una política por operación filtrada por <code>auth.uid()</code> y ninguna política <code>using (true)</code> sobre datos privados.</p></div>
+<h2>Por qué importa: los datos</h2>
+<ul>
+<li>Sentris escaneó 2.144 repositorios públicos de Supabase hechos con herramientas de IA (agosto de 2026): el 40,6% tenía una exposición crítica confirmada, contra el 24,9% de un grupo de control sin IA. En los repos de Lovable la cifra fue 57,9% (<a href="https://sentris.dev/blog/we-scanned-2000-ai-built-supabase-apps" rel="noopener">fuente</a>).</li>
+<li>En 2025, Matt Palmer encontró 170 de 1.645 apps de Lovable con datos expuestos por falta de RLS, el caso registrado como CVE-2025-48757 (<a href="{CVE}" rel="noopener">fuente</a>).</li>
+<li>UpGuard explica la causa: Supabase activa RLS por defecto en las tablas creadas desde el Table Editor, pero no en las que se crean por API o SQL, que es como trabajan los agentes de código (<a href="https://www.upguard.com/blog/everything-everywhere-systemic-data-exposure-in-supabase-apps" rel="noopener">fuente</a>).</li>
+</ul>
+<p>La documentación oficial de Supabase lo dice sin vueltas: una tabla de un esquema expuesto sin RLS se puede leer y escribir con cualquier rol que tenga permisos sobre ella (<a href="https://supabase.com/docs/guides/database/postgres/row-level-security" rel="noopener">fuente</a>).</p>
+<h2>Paso 1: mirá el escaneo de seguridad de Lovable</h2>
+<p>Lovable corre un <em>Quick scan</em> cada vez que abrís el diálogo de publicar. Entre otras cosas, marca tablas sin RLS y políticas que dejan pasar a todos. También podés lanzarlo cuando quieras desde la vista <em>Security</em> del proyecto, y las políticas se revisan en <em>More → Database → Manage → Policies</em> (<a href="https://docs.lovable.dev/features/security" rel="noopener">documentación de Lovable</a>). Es un buen primer filtro, pero la propia Lovable aclara que no garantiza seguridad completa.</p>
+<h2>Paso 2: listá las tablas sin RLS con SQL</h2>
+<p>En Supabase, abrí el <em>SQL Editor</em> y ejecutá:</p>
+<pre><code>select tablename, rowsecurity
+from pg_tables
+where schemaname = 'public'
+order by rowsecurity, tablename;</code></pre>
+<p>Cada fila con <code>rowsecurity = false</code> es una tabla abierta. Después mirá qué políticas tenés y para quién:</p>
+<pre><code>select tablename, policyname, cmd, roles, qual, with_check
+from pg_policies
+where schemaname = 'public';</code></pre>
+<p>Buscá políticas con <code>qual = true</code> dirigidas a <code>anon</code> o <code>public</code>: equivalen a no tener RLS, salvo que esa tabla sea realmente pública.</p>
+<h2>Paso 3: probá desde afuera, como lo haría un atacante</h2>
+<p>Solo en tu propio proyecto: con la URL y la clave <code>anon</code> que ya están en el frontend de tu app, pedí una fila de una tabla privada.</p>
+<pre><code>curl "https://TU-PROYECTO.supabase.co/rest/v1/perfiles?select=*&amp;limit=1" \\
+  -H "apikey: TU_CLAVE_ANON"</code></pre>
+<p>Si devuelve datos sin haber iniciado sesión, esa tabla está expuesta. Una respuesta vacía (<code>[]</code>) o un error de permisos es lo que querés ver.</p>
+<h2>Paso 4: activá RLS y ajustá los permisos</h2>
+<p>Supabase recomienda tres cosas juntas: activar RLS, quitar los permisos por defecto a <code>anon</code> y <code>authenticated</code>, y devolver solo los que tu app usa.</p>
+<pre><code>alter table public.perfiles enable row level security;
+revoke all on table public.perfiles from anon, authenticated;
+grant select, insert, update, delete on table public.perfiles to authenticated;</code></pre>
+<p>Con RLS activado y sin políticas, nadie lee nada con la clave pública. Ahora agregá una política por operación:</p>
+<pre><code>create policy "ver mi perfil" on public.perfiles
+  for select to authenticated
+  using ( (select auth.uid()) = user_id );
+
+create policy "crear mi perfil" on public.perfiles
+  for insert to authenticated
+  with check ( (select auth.uid()) = user_id );
+
+create policy "editar mi perfil" on public.perfiles
+  for update to authenticated
+  using ( (select auth.uid()) = user_id )
+  with check ( (select auth.uid()) = user_id );
+
+create policy "borrar mi perfil" on public.perfiles
+  for delete to authenticated
+  using ( (select auth.uid()) = user_id );</code></pre>
+<p>El <code>with check</code> del update evita que alguien se “regale” una fila cambiando el <code>user_id</code>. Agregá un índice en <code>user_id</code> para que las consultas no se vuelvan lentas.</p>
+<h2>Paso 5: los cinco errores que vemos más seguido</h2>
+<ol>
+<li><strong><code>using (true)</code> en datos privados.</strong> Deja pasar a cualquiera. Usalo solo para contenido público, como un catálogo.</li>
+<li><strong>Vistas que saltan RLS.</strong> En Postgres las vistas se crean como <code>security definer</code> y devuelven todo. Crealas con <code>with (security_invoker = true)</code>.</li>
+<li><strong>Funciones <code>security definer</code> en el esquema <code>public</code>.</strong> Se pueden llamar desde la API con los privilegios de su dueño. Ponelas en un esquema privado y fijá <code>search_path = ''</code>.</li>
+<li><strong>Políticas basadas en <code>user_metadata</code>.</strong> El usuario puede modificar ese campo. Para roles y permisos usá <code>app_metadata</code>.</li>
+<li><strong>La clave <code>service_role</code> o secreta en el frontend.</strong> Salta todo RLS. Si alguna vez estuvo en tu repo, rotala en Supabase.</li>
+</ol>
+<h2>Paso 6: comprobalo con tests</h2>
+<p>Supabase propone un archivo de test por tabla en <code>supabase/tests/</code> (pgTAP) que verifique qué puede y qué no puede hacer cada rol, y correrlo con <code>supabase test db</code>. Hasta que el test pasa, no sabés si la política hace lo que creés.</p>
+<h2>Si preferís pedírselo a Lovable</h2>
+<p>Podés escribir en el chat del proyecto algo como: <em>“Activá Row Level Security en todas las tablas de public, quitá los permisos de anon que no hagan falta y creá políticas separadas de select, insert, update y delete filtradas por auth.uid() = user_id. No uses using (true) en tablas con datos de usuarios.”</em> Después volvé a correr el escaneo y repetí la prueba del paso 3.</p>
+<h2>Revisalo gratis en tu repo</h2>
+<p>Nuestro <a href="{B}/escaneo/">escaneo gratis</a> lee las migraciones SQL de cualquier repo público de GitHub desde tu navegador y marca tablas creadas sin RLS, políticas <code>using (true)</code> y claves <code>service_role</code> en el código. No crea cuenta ni guarda tu código. Para la lista completa de controles, mirá la <a href="{B}/blog/checklist-seguridad-apps-vibe-coding/">checklist de seguridad para apps hechas con IA</a>.</p>
+<p>¿Querés una guía así cada semana? <a href="https://whop.com/checkout/plan_rO1ouDQJcQy2D" rel="noopener">Suscribite gratis al boletín</a>.</p>
+<h2>Fuentes</h2>
+<ul>
+<li><a href="https://supabase.com/docs/guides/database/postgres/row-level-security" rel="noopener">Supabase: Row Level Security</a></li>
+<li><a href="https://docs.lovable.dev/features/security" rel="noopener">Lovable: Security overview</a></li>
+<li><a href="https://sentris.dev/blog/we-scanned-2000-ai-built-supabase-apps" rel="noopener">Sentris: We scanned 2,144 AI-built Supabase repos</a></li>
+<li><a href="https://www.upguard.com/blog/everything-everywhere-systemic-data-exposure-in-supabase-apps" rel="noopener">UpGuard: systemic data exposure in Supabase apps</a></li>
+<li><a href="{CVE}" rel="noopener">Matt Palmer: statement on CVE-2025-48757</a></li>
+</ul>
+""",
 "mercado-pago-en-apps-lovable": f"""
 <p>Lovable trae integraciones nativas con Stripe y Paddle. Si vivís en Argentina, Chile, Colombia, Perú o Uruguay, o si tus clientes pagan con Mercado Pago, eso no alcanza. Esta guía muestra cómo integrar <strong>Mercado Pago Checkout Pro</strong> en una app de Lovable con Supabase, sin dejar tu clave secreta en el navegador.</p>
 <h2>La regla de oro: dos claves, dos lugares</h2>
@@ -55,7 +129,7 @@ create policy "leer la propia" on public.subscriptions
 <p>En junio de 2026, Symbiotic Security escaneó 1.072 apps hechas con Lovable, v0, Bolt.new, Replit y Windsurf sobre Supabase. El 98% tenía al menos una falla y el 16% tenía una crítica; 172 sitios permitían borrar registros sin iniciar sesión (<a href="{SYM}" rel="noopener">fuente</a>). Un año antes, Matt Palmer había encontrado 170 apps de Lovable con la base de datos abierta, el caso registrado como CVE-2025-48757 (<a href="{CVE}" rel="noopener">fuente</a>).</p>
 <p>La buena noticia: la mayoría de esas fallas se corrigen con una lista corta. Estos son los 12 controles que revisamos antes de lanzar.</p>
 <h2>Base de datos</h2>
-<ol><li><strong>Row Level Security en todas las tablas.</strong> La clave <code>anon</code> de Supabase es pública por diseño: lo que protege tus datos es RLS. Sin RLS, cualquiera con esa clave lee y escribe todo.</li>
+<ol><li><strong>Row Level Security en todas las tablas.</strong> La clave <code>anon</code> de Supabase es pública por diseño: lo que protege tus datos es RLS. Sin RLS, cualquiera con esa clave lee y escribe todo. Guía paso a paso: <a href="{B}/blog/rls-supabase-lovable/">cómo revisar y activar RLS en una app de Lovable</a>.</li>
 <li><strong>Nada de <code>using (true)</code>.</strong> Una política que deja pasar a todos equivale a no tener RLS. Filtrá por <code>auth.uid()</code>.</li>
 <li><strong>Columnas sensibles fuera de la API.</strong> Emails, teléfonos o tokens no deberían poder consultarse desde el navegador si no hace falta.</li>
 <li><strong>Funciones RPC revisadas.</strong> Una función <code>security definer</code> ignora RLS; asegurate de que valide al usuario.</li></ol>
@@ -123,6 +197,11 @@ LEGAL = [
 
 # Per-article FAQ (rendered visibly on the article and as FAQPage JSON-LD). Key = slug.
 POST_FAQ = {
+"rls-supabase-lovable": [
+ ("¿Cómo sé si mi app de Lovable tiene la base de datos abierta?", "Ejecutá en el SQL Editor de Supabase: select tablename, rowsecurity from pg_tables where schemaname = 'public'. Toda tabla con rowsecurity = false está abierta para cualquiera que tenga la clave anon, que es pública. También podés probar con curl usando la clave anon contra una tabla privada."),
+ ("¿Supabase activa RLS automáticamente?", "En las tablas creadas desde el Table Editor, sí. En las creadas por SQL o por API, que es como trabajan los agentes de IA, no: hay que ejecutar alter table ... enable row level security en cada una."),
+ ("¿Alcanza con activar RLS?", "No. Con RLS activado y sin políticas nadie accede; después necesitás una política por operación filtrada por auth.uid(), quitar los permisos de anon que no uses y evitar using (true) en datos privados."),
+],
 "mercado-pago-en-apps-lovable": [
  ("¿Puedo poner el access token de Mercado Pago en el frontend de Lovable?", "No. El access token es secreto: con él se pueden crear cobros y leer pagos de tu cuenta. Guardalo como secreto en Supabase (MP_ACCESS_TOKEN) y usalo solo desde una Edge Function. En el frontend solo va la public key."),
  ("¿Cómo sé si un pago de Mercado Pago fue aprobado?", "Con el webhook, no con la URL de regreso. Consultá el pago en la API de Mercado Pago con su id, activá el plan solo si el status es approved y validá la firma del encabezado x-signature."),
