@@ -6,7 +6,7 @@ CVE = "https://mattpalmer.io/posts/2025/05/statement-on-CVE-2025-48757/"
 
 POST_BODIES = {
 "rls-supabase-lovable": f"""
-<div class="report" style="margin:1.5rem 0"><p><strong>Respuesta corta:</strong> en una app de Lovable con Supabase, la clave <code>anon</code> que va en el navegador es pública. Lo único que impide que cualquiera lea o modifique tus tablas es Row Level Security (RLS). Revisá que cada tabla del esquema <code>public</code> tenga RLS activado, una política por operación filtrada por <code>auth.uid()</code> y ninguna política <code>using (true)</code> sobre datos privados.</p></div>
+<div class="report" style="margin:1.5rem 0"><p><strong>Respuesta corta:</strong> en una app de Lovable con Supabase, la clave pública que va en el navegador (<code>anon</code> o, en proyectos nuevos, <code>sb_publishable_</code>) es pública por diseño. Lo único que impide que cualquiera lea o modifique tus tablas es Row Level Security (RLS). Revisá que cada tabla del esquema <code>public</code> tenga RLS activado, una política por operación filtrada por <code>auth.uid()</code> y ninguna política <code>using (true)</code> sobre datos privados.</p></div>
 <h2>Por qué importa: los datos</h2>
 <ul>
 <li>Sentris escaneó 2.144 repositorios públicos de Supabase hechos con herramientas de IA (agosto de 2026): el 40,6% tenía una exposición crítica confirmada, contra el 24,9% de un grupo de control sin IA. En los repos de Lovable la cifra fue 57,9% (<a href="https://sentris.dev/blog/we-scanned-2000-ai-built-supabase-apps" rel="noopener">fuente</a>).</li>
@@ -61,7 +61,7 @@ create policy "borrar mi perfil" on public.perfiles
 <li><strong>Vistas que saltan RLS.</strong> En Postgres las vistas se crean como <code>security definer</code> y devuelven todo. Crealas con <code>with (security_invoker = true)</code>.</li>
 <li><strong>Funciones <code>security definer</code> en el esquema <code>public</code>.</strong> Se pueden llamar desde la API con los privilegios de su dueño. Ponelas en un esquema privado y fijá <code>search_path = ''</code>.</li>
 <li><strong>Políticas basadas en <code>user_metadata</code>.</strong> El usuario puede modificar ese campo. Para roles y permisos usá <code>app_metadata</code>.</li>
-<li><strong>La clave <code>service_role</code> o secreta en el frontend.</strong> Salta todo RLS. Si alguna vez estuvo en tu repo, rotala en Supabase.</li>
+<li><strong>La clave <code>service_role</code> o <code>sb_secret_</code> en el frontend.</strong> Salta todo RLS. Si alguna vez estuvo en tu repo, rotala en Supabase.</li>
 </ol>
 <h2>Paso 6: comprobalo con tests</h2>
 <p>Supabase propone un archivo de test por tabla en <code>supabase/tests/</code> (pgTAP) que verifique qué puede y qué no puede hacer cada rol, y correrlo con <code>supabase test db</code>. Hasta que el test pasa, no sabés si la política hace lo que creés.</p>
