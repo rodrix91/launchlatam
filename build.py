@@ -230,6 +230,7 @@ def scan_block(lang, c, standalone=False):
 # Blog posts. lang: es|pt|en. tkey groups translations of the same article (drives hreflang).
 # To add a PT/EN article: append a dict here and its HTML body to POST_BODIES in content.py (key = slug).
 POSTS = [
+ dict(lang="pt", slug="pix-no-lovable", tkey="pix-lovable", date="2026-11-09", title="Como receber Pix em um app feito no Lovable (Mercado Pago e alternativas)", desc="Passo a passo para receber Pix num app do Lovable com Mercado Pago e Supabase Edge Functions: QR Code, Copia e Cola, webhook com assinatura validada e alternativas como Stripe."),
  dict(lang="es", slug="rls-supabase-lovable", tkey="rls-lovable", date="2026-11-02", title="RLS en Supabase para apps de Lovable: cómo saber si tu base está abierta y cerrarla paso a paso", desc="Cómo comprobar si las tablas de tu app de Lovable están expuestas, activar Row Level Security con políticas correctas y evitar los errores más comunes, con datos y fuentes."),
  dict(lang="es", slug="mercado-pago-en-apps-lovable", tkey="mp-lovable", date="2026-10-31", title="Cómo cobrar con Mercado Pago en una app hecha con Lovable (sin exponer tus claves)", desc="Guía paso a paso para integrar Mercado Pago Checkout Pro en una app de Lovable con Supabase Edge Functions, webhooks y claves seguras."),
  dict(lang="es", slug="checklist-seguridad-apps-vibe-coding", tkey="checklist", date="2026-10-31", title="Checklist de seguridad para apps hechas con IA: 12 controles antes de lanzar", desc="Los 12 controles que tenés que revisar antes de lanzar una app hecha con Lovable, Bolt, Cursor o Replit, con datos de estudios reales."),
@@ -382,7 +383,7 @@ llms = f"""# LaunchLatam
 """ + "".join(f"- **{q}** {a}\n" for q,a in C["es"]["faq"]) + """
 ## Perguntas frequentes (pt)
 """ + "".join(f"- **{q}** {a}\n" for q,a in C["pt"]["faq"]) + f"""
-## Answers from our articles (es)
+## Answers from our articles (es/pt)
 """ + "".join(f"- **{q}** {a} Source: {BASE}{post_path(p)}\n" for p in POSTS for q,a in POST_FAQ.get(p["slug"], [])) + f"""
 ## Contact
 {MAIL}

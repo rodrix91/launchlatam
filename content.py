@@ -5,6 +5,76 @@ SYM = "https://www.symbioticsec.ai/blog/we-scanned-1-072-vibe-coded-apps-98-had-
 CVE = "https://mattpalmer.io/posts/2025/05/statement-on-CVE-2025-48757/"
 
 POST_BODIES = {
+"pix-no-lovable": """
+<div class="report" style="margin:1.5rem 0"><p><strong>Resposta curta:</strong> para receber Pix num app feito no Lovable, crie o pagamento no servidor (uma Edge Function do Supabase) chamando <code>POST /v1/payments</code> do Mercado Pago com <code>payment_method_id: "pix"</code>, mostre ao comprador o QR Code e o Pix Copia e Cola que voltam na resposta e libere o acesso só quando o webhook, com assinatura validada, confirmar o status <code>approved</code>. O access token nunca vai para o frontend.</p></div>
+<p>O Lovable tem pagamentos integrados com Stripe ou Paddle e também aceita a sua própria conta Stripe (<a href="https://docs.lovable.dev/integrations/stripe" rel="noopener">documentação do Lovable</a>). Para Pix, o caminho mais direto para quem vende no Brasil costuma ser o Mercado Pago. Abaixo está o passo a passo, com as alternativas no final.</p>
+<h2>O que você precisa antes</h2>
+<ul>
+<li>Uma conta de vendedor no Mercado Pago com <strong>chaves Pix cadastradas</strong>. Sem chave Pix, a opção não aparece (<a href="https://www.mercadopago.com.br/developers/pt/docs/checkout-api-orders/overview" rel="noopener">pré-requisitos do Mercado Pago</a>).</li>
+<li>Uma aplicação criada em <em>Suas integrações</em>, com a <em>public key</em> e o <em>access token</em> de teste.</li>
+<li>Um backend: o Supabase conectado ao seu projeto do Lovable, onde vão a Edge Function e os segredos.</li>
+</ul>
+<h2>Passo 1: guarde o access token como segredo</h2>
+<p>O access token cria cobranças e lê pagamentos da sua conta. Salve-o como segredo do Supabase (por exemplo <code>MP_ACCESS_TOKEN</code>) e use-o só dentro de Edge Functions. No navegador vai, no máximo, a <em>public key</em>. Se o token já apareceu no código ou no repositório, gere outro no painel do Mercado Pago antes de seguir.</p>
+<h2>Passo 2: crie o pagamento Pix numa Edge Function</h2>
+<p>A documentação do Mercado Pago mostra o pagamento Pix como um <code>POST</code> em <code>/v1/payments</code> com <code>payment_method_id: "pix"</code>, o e-mail do comprador e o cabeçalho obrigatório <code>X-Idempotency-Key</code>, que evita cobrança duplicada se a requisição for repetida (<a href="https://www.mercadopago.com.br/developers/pt/docs/checkout-api-payments/integration-configuration/integrate-pix" rel="noopener">documentação Pix do Mercado Pago</a>).</p>
+<pre><code>// supabase/functions/criar-pix/index.ts
+Deno.serve(async (req) =&gt; {
+  const { email, pedidoId } = await req.json();
+  const PRECO = 49.90; // o preço é definido aqui, nunca no navegador
+  const r = await fetch("https://api.mercadopago.com/v1/payments", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${Deno.env.get("MP_ACCESS_TOKEN")}`,
+      "Content-Type": "application/json",
+      "X-Idempotency-Key": crypto.randomUUID(),
+    },
+    body: JSON.stringify({
+      transaction_amount: PRECO,
+      description: "Plano Pro",
+      payment_method_id: "pix",
+      external_reference: pedidoId,
+      payer: { email },
+    }),
+  });
+  const p = await r.json();
+  const t = p.point_of_interaction?.transaction_data;
+  return Response.json({ id: p.id, status: p.status,
+    qr_code: t?.qr_code, qr_code_base64: t?.qr_code_base64, ticket_url: t?.ticket_url });
+});</code></pre>
+<p>Por padrão o código Pix vence em <strong>24 horas</strong>. Você pode mudar isso com <code>date_of_expiration</code>, entre 30 minutos e 30 dias a partir da emissão (<a href="https://www.mercadopago.com.br/developers/pt/docs/checkout-api-payments/integration-configuration/integrate-pix" rel="noopener">fonte</a>). Para um app com assinatura ou acesso imediato, um prazo curto evita pedidos “pendentes” acumulados.</p>
+<p>O Mercado Pago também documenta o Pix na Orders API, mais nova, com <code>payment_method.type = "bank_transfer"</code> (<a href="https://www.mercadopago.com.br/developers/pt/docs/checkout-api-orders/payment-integration/pix" rel="noopener">documentação da Orders API</a>). A lógica é a mesma: criar no servidor, exibir o QR e confirmar pelo webhook.</p>
+<h2>Passo 3: mostre o QR Code e o Copia e Cola</h2>
+<p>A resposta do pagamento chega com status <code>pending</code> e <code>status_detail</code> <code>pending_waiting_transfer</code>, e traz três coisas em <code>point_of_interaction.transaction_data</code>: <code>qr_code_base64</code> (a imagem), <code>qr_code</code> (o texto do Pix Copia e Cola) e <code>ticket_url</code> (uma página do Mercado Pago com tudo pronto). No Lovable, peça na conversa um componente que receba esses campos:</p>
+<pre><code>&lt;img src={`data:image/jpeg;base64,${qr_code_base64}`} alt="QR Code Pix" /&gt;
+&lt;input readOnly value={qr_code} /&gt; &lt;button&gt;Copiar código Pix&lt;/button&gt;</code></pre>
+<p>Quem paga pelo celular normalmente prefere o Copia e Cola; quem está no computador escaneia o QR.</p>
+<h2>Passo 4: confirme o pagamento pelo webhook, não pela tela</h2>
+<p>O Pix é pago fora do seu app, no banco do comprador. Por isso a confirmação tem que vir do servidor:</p>
+<ol>
+<li>Configure em <em>Suas integrações → Webhooks</em> uma URL que aponte para outra Edge Function e copie a assinatura secreta.</li>
+<li>Em cada notificação, valide o cabeçalho <code>x-signature</code> (formato <code>ts=...,v1=...</code>): monte <code>id:&lt;data.id&gt;;request-id:&lt;x-request-id&gt;;ts:&lt;ts&gt;;</code>, calcule o HMAC-SHA256 com a sua chave secreta e compare com <code>v1</code>. Se não bater, responda 401 (<a href="https://www.mercadopago.com.br/developers/pt/docs/your-integrations/notifications/webhooks" rel="noopener">documentação de webhooks</a>).</li>
+<li>Com a assinatura válida, consulte <code>GET /v1/payments/{id}</code> e só libere o acesso se o status for <code>approved</code>. Trate a notificação como um aviso, e a consulta à API como a verdade.</li>
+<li>Seja idempotente: a mesma notificação pode chegar mais de uma vez. Guarde o id do pagamento e não ative o plano duas vezes (<a href="https://github.com/mercadopago/sdk-nodejs/blob/master/docs/webhooks.md" rel="noopener">guia do SDK oficial</a>).</li>
+</ol>
+<p>Guarde o pagamento numa tabela do Supabase com <strong>RLS ativado</strong>, para que cada usuário veja só os próprios pedidos. Se você ainda não revisou isso, veja o nosso <a href="https://rodrix91.github.io/launchlatam/blog/rls-supabase-lovable/" hreflang="es-419">guia de RLS no Supabase para apps do Lovable</a> (em espanhol).</p>
+<h2>Passo 5: teste antes de ir para produção</h2>
+<p>Use as credenciais e contas de teste do Mercado Pago e faça uma compra de teste com Pix antes de trocar para as credenciais de produção. O Mercado Pago tem uma seção específica para isso (“Realizar uma compra teste com Pix”) na <a href="https://www.mercadopago.com.br/developers/pt/docs/checkout-api-orders/overview" rel="noopener">documentação do Checkout Transparente</a>.</p>
+<h2>Alternativas ao Checkout Transparente</h2>
+<ul>
+<li><strong>Checkout Pro do Mercado Pago.</strong> O comprador é levado ao ambiente do Mercado Pago, que já oferece Pix, cartão e boleto. Dá menos trabalho de interface; você ainda precisa do webhook para confirmar o pagamento. Temos um <a href="https://rodrix91.github.io/launchlatam/blog/mercado-pago-en-apps-lovable/" hreflang="es-419">guia de Checkout Pro no Lovable</a> (em espanhol).</li>
+<li><strong>Stripe com Pix.</strong> Contas Stripe no Brasil aceitam Pix avulso com liquidação em BRL; empresas fora do Brasil (por exemplo EUA ou países da Europa) também podem receber Pix de clientes brasileiros. Nesse caso o cliente paga IOF de 3,5% por padrão, e o Pix Automático (recorrente) não está disponível para empresas sediadas no Brasil (<a href="https://docs.stripe.com/payments/pix" rel="noopener">documentação da Stripe</a>). Como o Lovable conecta a sua própria conta Stripe, essa é uma opção se você já tem Stripe.</li>
+<li><strong>Atenção se você não está no Brasil.</strong> A lista de países com conta Stripe que aceita Pix não inclui Bolívia, Paraguai nem Argentina (<a href="https://docs.stripe.com/payments/pix" rel="noopener">fonte</a>). Para vender para o Brasil a partir desses países, compare as opções no nosso artigo <a href="https://rodrix91.github.io/launchlatam/blog/stripe-no-funciona-en-mi-pais/" hreflang="es-419">sobre cobrar sem Stripe</a> (em espanhol).</li>
+</ul>
+<h2>Erros que mais vemos</h2>
+<ol>
+<li><strong>Access token no frontend.</strong> Qualquer pessoa que abrir o código do site consegue usá-lo.</li>
+<li><strong>Preço enviado pelo navegador.</strong> O valor tem que ser definido na Edge Function.</li>
+<li><strong>Liberar o acesso na tela de “obrigado”.</strong> Sem webhook validado, qualquer um chega nessa tela sem pagar.</li>
+<li><strong>Webhook sem validar <code>x-signature</code>.</strong> Abre a porta para notificações falsas.</li>
+<li><strong>Sem <code>X-Idempotency-Key</code>.</strong> Um clique duplo pode gerar dois pagamentos.</li>
+</ol>
+""",
 "rls-supabase-lovable": f"""
 <div class="report" style="margin:1.5rem 0"><p><strong>Respuesta corta:</strong> en una app de Lovable con Supabase, la clave pública que va en el navegador (<code>anon</code> o, en proyectos nuevos, <code>sb_publishable_</code>) es pública por diseño. Lo único que impide que cualquiera lea o modifique tus tablas es Row Level Security (RLS). Revisá que cada tabla del esquema <code>public</code> tenga RLS activado, una política por operación filtrada por <code>auth.uid()</code> y ninguna política <code>using (true)</code> sobre datos privados.</p></div>
 <h2>Por qué importa: los datos</h2>
@@ -197,6 +267,11 @@ LEGAL = [
 
 # Per-article FAQ (rendered visibly on the article and as FAQPage JSON-LD). Key = slug.
 POST_FAQ = {
+"pix-no-lovable": [
+ ('Como recebo Pix num app feito no Lovable?', 'Crie o pagamento numa Edge Function do Supabase com POST /v1/payments do Mercado Pago e payment_method_id pix, mostre o qr_code_base64 e o qr_code (Copia e Cola) que voltam na resposta e libere o acesso só quando o webhook, com a assinatura x-signature validada, confirmar o status approved.'),
+ ('Quanto tempo vale um código Pix do Mercado Pago?', 'Por padrão, 24 horas. Dá para mudar com o campo date_of_expiration, entre 30 minutos e 30 dias a partir da emissão do pagamento.'),
+ ('Posso usar Stripe para receber Pix?', 'Sim, se a sua conta Stripe for de um país suportado (Brasil, EUA, Canadá, vários da Europa, Austrália ou Singapura). Fora do Brasil, o cliente brasileiro paga IOF de 3,5% por padrão. Bolívia, Paraguai e Argentina não estão na lista.'),
+],
 "rls-supabase-lovable": [
  ("¿Cómo sé si mi app de Lovable tiene la base de datos abierta?", "Ejecutá en el SQL Editor de Supabase: select tablename, rowsecurity from pg_tables where schemaname = 'public'. Toda tabla con rowsecurity = false está abierta para cualquiera que tenga la clave anon, que es pública. También podés probar con curl usando la clave anon contra una tabla privada."),
  ("¿Supabase activa RLS automáticamente?", "En las tablas creadas desde el Table Editor, sí. En las creadas por SQL o por API, que es como trabajan los agentes de IA, no: hay que ejecutar alter table ... enable row level security en cada una."),
