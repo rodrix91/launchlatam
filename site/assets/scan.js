@@ -68,6 +68,9 @@ async function scan(repo,out,status){
  f.push(leg?["ok",t("legOK")]:["med",t("leg")]);
  return {f:f,n:n,repo:repo.o+"/"+repo.r};
 }
+// T-101: cookie-less GoatCounter events (no-op if analytics disabled). Only coarse buckets, never repo names/URLs.
+function gcEvent(name){try{if(window.goatcounter&&window.goatcounter.count)window.goatcounter.count({path:name,title:name,event:true})}catch(e){}}
+function bucket(sc){return sc>=80?"80-100":sc>=50?"50-79":"0-49"}
 function render(res,out){
  var w={crit:30,high:15,med:6,ok:0},sc=100;res.f.forEach(function(x){sc-=w[x[0]]});sc=Math.max(0,sc);
  var lbl={crit:T.crit,high:T.high,med:T.med,ok:T.ok},cls={crit:"bad",high:"bad",med:"bad",ok:"ok"};
@@ -77,15 +80,16 @@ function render(res,out){
  res.f.forEach(function(x){h+='<div class="finding"><span class="pill '+cls[x[0]]+'">'+lbl[x[0]]+"</span> "+esc(x[1])+"</div>"});
  h+='<p class="muted" style="color:#CDB59B">'+T.note+'</p><div class="ctas"><a class="btn a" href="https://whop.com/checkout/plan_zaTKde6gNjQM2" rel="noopener">'+T.cta+'</a><a class="btn s" style="color:var(--sal);border-color:var(--sal)" href="#precios">'+T.cta2+"</a></div>";
  out.innerHTML=h;out.hidden=false;document.getElementById("scan-title").focus();
+ return sc;
 }
 document.addEventListener("DOMContentLoaded",function(){
  var form=document.getElementById("scan-form");if(form){
  var out=document.getElementById("scan-out"),status=document.getElementById("scan-status"),btn=form.querySelector("button");
  form.addEventListener("submit",async function(e){e.preventDefault();var repo=parse(form.repo.value);
   if(!repo){status.textContent=T.bad;return}
-  btn.disabled=true;status.textContent=T.run+"…";out.hidden=true;
-  try{var r=await scan(repo,out,status);status.textContent="";render(r,out)}
-  catch(err){status.textContent=err==="rl"?T.rl:T.nf}
+  btn.disabled=true;status.textContent=T.run+"…";out.hidden=true;gcEvent("scan_run");
+  try{var r=await scan(repo,out,status);status.textContent="";gcEvent("scan_result/"+bucket(render(r,out)))}
+  catch(err){status.textContent=err==="rl"?T.rl:T.nf;gcEvent("scan_result/"+(err==="rl"?"rate_limited":"not_found"))}
   finally{btn.disabled=false}
  });}
  var q=document.getElementById("self-check");if(q){q.addEventListener("submit",function(e){e.preventDefault();

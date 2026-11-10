@@ -5,6 +5,8 @@ BASE = os.environ.get("BASE", "https://rodrix91.github.io/launchlatam")
 ROOT = os.environ.get("OUT", os.path.join(os.path.dirname(os.path.abspath(__file__)), "site"))
 TODAY = datetime.date.today().isoformat()
 MAIL = "rodrixlabs@mail.grokbot.com"
+# T-101 analytics: GoatCounter site code (the "CODIGO" in https://CODIGO.goatcounter.com). Empty = analytics fully omitted.
+GOATCOUNTER = os.environ.get("GOATCOUNTER", "launchlatam")
 W = {  # Whop checkout links
  "fix": "https://whop.com/checkout/plan_zaTKde6gNjQM2",
  "l149": "https://whop.com/checkout/plan_klbC3rVIhgyog",
@@ -21,6 +23,9 @@ SRC = {
 }
 LOGO = '<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="4 3"/><path d="M11 25 L20 10 L29 25 Z" fill="#E2522B"/><path d="M14 29h12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>'
 PERSON = {"@type":"Person","name":"Rodrigo Pantoja Navajas","jobTitle":"Data Science Manager","url":BASE+"/sobre/","sameAs":["https://x.com/RODRX_NOVA","https://www.linkedin.com/in/rodrigo-p-625862153"]}
+GC_SCRIPT = " https://gc.zgo.at" if GOATCOUNTER else ""
+GC_CONNECT = GC_IMG = " https://*.goatcounter.com" if GOATCOUNTER else ""
+GC_TAG = f'<script data-goatcounter="https://{GOATCOUNTER}.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>' if GOATCOUNTER else ""
 LOCALES = {"es": ("es-419", "/"), "pt": ("pt-BR", "/pt/"), "en": ("en", "/en/")}
 
 def page(lang, path, title, desc, body, alts=None, schema=None, dock=None, og=None):
@@ -50,7 +55,7 @@ def page(lang, path, title, desc, body, alts=None, schema=None, dock=None, og=No
     return f'''<!doctype html><html lang="{hl}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{html.escape(title)}</title><meta name="description" content="{html.escape(desc)}">
 <link rel="canonical" href="{url}">{alt_links}
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-PLACEHOLDER'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src https://api.github.com https://raw.githubusercontent.com; form-action 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-PLACEHOLDER'{GC_SCRIPT}; style-src 'self' 'unsafe-inline'; img-src 'self' data:{GC_IMG}; font-src 'self'; connect-src https://api.github.com https://raw.githubusercontent.com{GC_CONNECT}; form-action 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="google-site-verification" content="ZtPoEPg8NinMyCsJ78acEyxd46AO3bJxT2z6dfDGVHA" />
 <meta name="theme-color" content="#1E1412"><link rel="icon" href="{BASE}/assets/favicon.svg" type="image/svg+xml">
@@ -58,7 +63,7 @@ def page(lang, path, title, desc, body, alts=None, schema=None, dock=None, og=No
 <link rel="stylesheet" href="{BASE}/assets/site.css">
 <meta property="og:type" content="website"><meta property="og:site_name" content="LaunchLatam"><meta property="og:title" content="{html.escape(title)}"><meta property="og:description" content="{html.escape(desc)}"><meta property="og:url" content="{url}"><meta property="og:image" content="{ogi}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:locale" content="{hl.replace('-','_')}">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{ogi}">
-{sch}<script src="{BASE}/assets/scan.js" defer></script></head><body>
+{sch}<script src="{BASE}/assets/scan.js" defer></script>{GC_TAG}</head><body>
 <a class="skip" href="#main">{ {"es":"Saltar al contenido","pt":"Pular para o conteúdo","en":"Skip to content"}[lang] }</a>
 <header class="wrap mast"><a class="brand" href="{BASE}{home}">{LOGO}<span>LaunchLatam</span></a><div class="lang" aria-label="Idioma / Language">{langs}</div></header>
 <main id="main">{body}</main>{FOOT[lang]}{dock_html}</body></html>'''
@@ -74,13 +79,13 @@ def foot(lang, tag, news, legal, links):
 <div class="wrap"><p style="margin-top:2rem">© 2026 LaunchLatam · <a href="mailto:{MAIL}">{MAIL}</a></p></div></footer>'''
 FOOT = {
  "es": foot("es","Dejamos tu app hecha con IA lista para lanzar y cobrar en Latinoamérica.","Boletín semanal: seguridad, cobros y lanzamiento de apps hechas con IA. Sin spam, te das de baja cuando quieras.",
-   f'<li><a href="{BASE}/privacidad/">Privacidad</a></li><li><a href="{BASE}/terminos/">Términos</a></li>',
+   f'<li><a href="{BASE}/terminos/">Términos</a></li><li><a href="{BASE}/privacidad/">Privacidad</a></li><li><a href="{BASE}/devoluciones/">Devoluciones</a></li><li><a href="{BASE}/cancelacion/">Cancelación</a></li>',
    f'<li><a href="{BASE}/blog/">Blog</a></li><li><a href="{BASE}/sobre/">Sobre nosotros</a></li><li><a href="{BASE}/escaneo/">Escaneo gratis</a></li><li><a href="{BASE}/llms.txt">llms.txt</a></li>'),
  "pt": foot("pt","Deixamos seu app feito com IA pronto para lançar e cobrar na América Latina.","Boletim semanal (em espanhol): segurança, pagamentos e lançamento de apps feitos com IA.",
-   f'<li><a href="{BASE}/en/privacy/">Privacidade (EN)</a></li><li><a href="{BASE}/en/terms/">Termos (EN)</a></li>',
+   f'<li><a href="{BASE}/pt/termos/">Termos</a></li><li><a href="{BASE}/pt/privacidade/">Privacidade</a></li><li><a href="{BASE}/pt/reembolsos/">Reembolsos</a></li><li><a href="{BASE}/pt/cancelamento/">Cancelamento</a></li>',
    f'<li><a href="{BASE}/pt/blog/">Blog</a></li><li><a href="{BASE}/pt/sobre/">Sobre nós</a></li><li><a href="{BASE}/pt/#escaneo">Scan grátis</a></li>'),
  "en": foot("en","We make your AI-built app ready to launch and get paid in Latin America.","Weekly newsletter (in Spanish): security, payments and launching AI-built apps.",
-   f'<li><a href="{BASE}/en/privacy/">Privacy</a></li><li><a href="{BASE}/en/terms/">Terms</a></li>',
+   f'<li><a href="{BASE}/en/terms/">Terms</a></li><li><a href="{BASE}/en/privacy/">Privacy</a></li><li><a href="{BASE}/en/refunds/">Refunds</a></li><li><a href="{BASE}/en/cancellation/">Cancellation</a></li>',
    f'<li><a href="{BASE}/en/blog/">Blog</a></li><li><a href="{BASE}/en/about/">About</a></li><li><a href="{BASE}/en/#escaneo">Free scan</a></li>'),
 }
 
@@ -123,7 +128,7 @@ C = {
       ("¿Qué pasarelas de pago integran?","Mercado Pago (Argentina, México, Brasil, Chile, Colombia, Perú, Uruguay), Pix en Brasil, OXXO en México y Stripe donde tenga sentido. Elegimos según tu país y el de tus clientes."),
       ("¿Esto reemplaza a un abogado?","No. Agregamos páginas de privacidad y términos basadas en la ley de datos de cada país (por ejemplo LGPD en Brasil o Ley 25.326 en Argentina) y una checklist. Para casos sensibles, como salud o finanzas, te recomendamos revisión legal."),
       ("¿Cuánto tarda?","El Fix Pack, 72 horas hábiles. Un lanzamiento, de 5 a 10 días hábiles según países y pasarelas."),
-      ("¿Y si no quedo conforme?","Si no corregimos las fallas acordadas, te devolvemos el dinero del Fix Pack. Las condiciones están en los términos.")],
+      ("¿Y si no quedo conforme?","En los servicios de pago único: si todavía no empezamos, si no entregamos lo acordado o si nos atrasamos más de 5 días hábiles sobre el plazo prometido, te reembolsamos el 100% de lo pagado por ese servicio. Si frenás un trabajo ya empezado, el reembolso es proporcional al trabajo que no hicimos. Tenés 14 días corridos para pedirlo. Un pull request entregado cuenta como entregado, aunque no lo apliques. Las suscripciones se cancelan cuando quieras y los períodos ya pagados no se reembolsan. Todo el detalle está en la política de devoluciones.")],
  ak="06 · Quiénes somos", ah="Un equipo chico, con agentes que no se cansan.",
  ap="LaunchLatam nace en Bolivia, de Rodrigo Pantoja, data scientist manager que construye con agentes de IA todos los días. Los agentes hacen el escaneo y el primer borrador de cada corrección, con revisión y aprobación antes de aplicar cualquier cambio en tu app. Todavía no tenemos clientes que mostrar: preferimos decírtelo a inventarlos.",
  bk="Recursos", bh="Del blog",
@@ -164,7 +169,8 @@ C = {
       ("Vocês mexem no app sem permissão?","Não. Toda mudança chega como pull request no seu repositório, e você aprova."),
       ("Quais meios de pagamento vocês integram?","Pix e Mercado Pago no Brasil, Mercado Pago no resto da região, OXXO no México e Stripe quando faz sentido."),
       ("Isso substitui um advogado?","Não. Criamos páginas de privacidade e termos com base na LGPD e um checklist. Para dados sensíveis, recomendamos revisão jurídica."),
-      ("Quanto tempo leva?","Fix Pack: 72 horas úteis. Lançamento: 5 a 10 dias úteis.")],
+      ("Quanto tempo leva?","Fix Pack: 72 horas úteis. Lançamento: 5 a 10 dias úteis."),
+      ("E se eu não ficar satisfeito?","Nos serviços de pagamento único: se ainda não começamos, se não entregarmos o combinado ou se atrasarmos mais de 5 dias úteis em relação ao prazo prometido, reembolsamos 100% do valor pago por esse serviço. Se você interromper um trabalho já iniciado, o reembolso é proporcional ao trabalho que não fizemos. Você tem 14 dias corridos para pedir. Um pull request entregue conta como entregue, mesmo que você não o aplique. As assinaturas podem ser canceladas quando quiser, e os períodos já pagos não são reembolsados. Todos os detalhes estão na política de reembolso.")],
  ak="06 · Quem somos", ah="Uma equipe pequena, com agentes que não se cansam.",
  ap="A LaunchLatam nasceu na Bolívia, criada por Rodrigo Pantoja, gerente de ciência de dados que constrói com agentes de IA todos os dias. Os agentes fazem o scan e o primeiro rascunho de cada correção, com revisão e aprovação antes de aplicar qualquer mudança no seu app. Ainda não temos clientes para mostrar, e preferimos dizer isso a inventá-los.",
  bk="Recursos", bh="Do blog (em espanhol)",
@@ -205,7 +211,8 @@ C = {
       ("Will you change my app without permission?","No. Every change arrives as a pull request you review and approve."),
       ("Which payment providers do you integrate?","Mercado Pago across the region, Pix in Brazil, OXXO in Mexico, and Stripe where it fits."),
       ("Does this replace a lawyer?","No. We add privacy and terms pages based on each country's data law (e.g. Brazil's LGPD) plus a checklist. For sensitive data, get legal review."),
-      ("How long does it take?","Fix Pack: 72 business hours. Launch: 5–10 business days.")],
+      ("How long does it take?","Fix Pack: 72 business hours. Launch: 5–10 business days."),
+      ("What if I'm not satisfied?","For one-time services: if we haven't started yet, don't deliver what was agreed, or are more than 5 business days late on the promised timeline, we refund 100% of the amount paid for that service. If you stop work already started, the refund is proportional to the work not yet done. You have 14 calendar days to request it. A delivered pull request counts as delivered even if you don't merge it. Subscriptions can be canceled anytime, and periods already paid are not refunded. Full details are in the refund policy.")],
  ak="06 · About", ah="A small team, with agents that don't get tired.",
  ap="LaunchLatam was started in Bolivia by Rodrigo Pantoja, a data science manager who builds with AI agents every day. Agents run the scan and draft each fix, with review and approval before any change is applied to your app. We don't have customers to show yet, and we'd rather say so than invent them.",
  bk="Resources", bh="From the blog (Spanish)",
@@ -302,7 +309,24 @@ def write(path, content):
 def prose_page(lang, path, title, desc, inner, alts=None, schema=None, og=None):
     return page(lang, path, title, desc, f'<article class="wrap prose" style="padding:3rem 0 5rem">{inner}</article>', alts, schema, og=og)
 
-from content import POST_BODIES, LEGAL, POST_FAQ, ABOUT
+from content import POST_BODIES, POST_FAQ, ABOUT
+import markdown, re as _re
+LEGAL_SRC = os.environ.get("LEGAL", "/workspace/quiposa/legal")
+# (doc, {lang: path}) — source: legal/<doc>.<lang>.md (single source of truth, see quiposa/legal/README.md)
+LEGAL_DOCS = [
+ ("terminos",     {"es": "/terminos/",     "pt": "/pt/termos/",       "en": "/en/terms/"}),
+ ("privacidad",   {"es": "/privacidad/",   "pt": "/pt/privacidade/",  "en": "/en/privacy/"}),
+ ("devoluciones", {"es": "/devoluciones/", "pt": "/pt/reembolsos/",   "en": "/en/refunds/"}),
+ ("cancelacion",  {"es": "/cancelacion/",  "pt": "/pt/cancelamento/", "en": "/en/cancellation/"}),
+]
+def legal_html(doc, lang):
+    md = open(os.path.join(LEGAL_SRC, f"{doc}.{lang}.md"), encoding="utf-8").read()
+    md = "\n".join(l for l in md.splitlines() if not l.startswith(">")).strip()  # drop internal status note
+    title = _re.search(r"^# (.+?)(?: · LaunchLatam)?$", md, _re.M).group(1)
+    h = markdown.markdown(md, extensions=["tables"])
+    h = h.replace("<table>", '<div style="overflow-x:auto"><table>').replace("</table>", "</table></div>")
+    h = _re.sub(r"([\w.+-]+@[\w.-]+\.\w+)", r'<a href="mailto:\1">\1</a>', h)
+    return title, h
 import sys; sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "tools")); import og
 urls = []
 for l in LOCALES:
@@ -342,8 +366,11 @@ for lang, (title, desc, kick, inner) in ABOUT.items():
     sch = [{"@context":"https://schema.org","@type":"AboutPage","name":title,"url":BASE+path,"inLanguage":LOCALES[lang][0],"mainEntity":{"@id":BASE+"/sobre/#rodrigo"}},
            dict({"@context":"https://schema.org","@id":BASE+"/sobre/#rodrigo"}, **PERSON, worksFor={"@type":"Organization","name":"LaunchLatam","url":BASE+"/"}, address={"@type":"PostalAddress","addressCountry":"BO"})]
     write(path, prose_page(lang, path, title+" · LaunchLatam", desc, inner, ABOUT_ALTS, sch, og=ogp)); urls.append((path, "0.5", ABOUT_ALTS))
-for (lang, path, title, inner, alt) in LEGAL:
-    write(path, prose_page(lang, path, title+" · LaunchLatam", title+" de LaunchLatam" if lang=="es" else "LaunchLatam "+title, inner, alt)); urls.append((path,"0.3",alt))
+for doc, alts in LEGAL_DOCS:
+    for lang, path in alts.items():
+        title, inner = legal_html(doc, lang)
+        desc = {"es": f"{title} de LaunchLatam (Quiposa).", "pt": f"{title} da LaunchLatam (Quiposa).", "en": f"LaunchLatam (Quiposa) {title}."}[lang]
+        write(path, prose_page(lang, path, title+" · LaunchLatam", desc, inner, alts)); urls.append((path, "0.3", alts))
 write("/gracias/", page("es","/gracias/","Gracias por tu compra · LaunchLatam","Próximos pasos después de tu compra en LaunchLatam.", f'<div class="wrap prose" style="padding:3rem 0 5rem"><p class="mono">Pedido recibido</p><h1>Listo. Tu app ya está en la fila.</h1><p>Recibirás un correo de Whop con tu recibo. En las próximas 24 horas hábiles te escribimos desde <a href="mailto:{MAIL}">{MAIL}</a> para pedirte acceso de lectura al repositorio (como colaborador en GitHub, nunca con contraseñas).</p><p>Mientras tanto: no compartas tu clave <code>service_role</code> con nadie, ni con nosotros.</p><p><a class="btn p" href="{BASE}/">Volver al inicio</a></p></div>'))
 open(os.path.join(ROOT,"404.html"),"w").write(page("es","/404.html","Página no encontrada · LaunchLatam","Esta página no existe.", f'<div class="wrap prose" style="padding:4rem 0 6rem"><p class="mono">Error 404</p><h1>Esta ruta no pasó la aduana.</h1><p>La página que buscás no existe o cambió de lugar.</p><p><a class="btn p" href="{BASE}/">Ir al inicio</a> <a class="btn s" href="{BASE}/escaneo/">Escaneo gratis</a></p></div>').replace('<meta name="description"','<meta name="robots" content="noindex"><meta name="description"'))
 # sitemap / robots / llms
