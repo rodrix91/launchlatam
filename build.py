@@ -237,6 +237,8 @@ def scan_block(lang, c, standalone=False):
 # Blog posts. lang: es|pt|en. tkey groups translations of the same article (drives hreflang).
 # To add a PT/EN article: append a dict here and its HTML body to POST_BODIES in content.py (key = slug).
 POSTS = [
+ dict(lang="es", slug="webhooks-mercado-pago-supabase", tkey="mp-webhooks", date="2026-11-23", title="Webhooks de Mercado Pago con Supabase Edge Functions: verificar la firma y evitar pagos falsos", desc="Cómo verificar la firma x-signature de los webhooks de Mercado Pago en una Edge Function de Supabase, consultar el pago en la API y evitar que un aviso falso active un plan."),
+ dict(lang="es", slug="service-role-expuesta-supabase", tkey="service-role-leak", date="2026-11-16", title="Filtraste tu clave service_role de Supabase: qué hacer en la próxima hora", desc="Qué hacer en la primera hora si filtraste la clave service_role de Supabase: cortar la filtración, rotar a una clave sb_secret_, desactivar la clave vieja y revisar RLS, con la documentación oficial."),
  dict(lang="pt", slug="pix-no-lovable", tkey="pix-lovable", date="2026-11-09", title="Como receber Pix em um app feito no Lovable (Mercado Pago e alternativas)", desc="Passo a passo para receber Pix num app do Lovable com Mercado Pago e Supabase Edge Functions: QR Code, Copia e Cola, webhook com assinatura validada e alternativas como Stripe."),
  dict(lang="es", slug="rls-supabase-lovable", tkey="rls-lovable", date="2026-11-02", title="RLS en Supabase para apps de Lovable: cómo saber si tu base está abierta y cerrarla paso a paso", desc="Cómo comprobar si las tablas de tu app de Lovable están expuestas, activar Row Level Security con políticas correctas y evitar los errores más comunes, con datos y fuentes."),
  dict(lang="es", slug="mercado-pago-en-apps-lovable", tkey="mp-lovable", date="2026-10-31", title="Cómo cobrar con Mercado Pago en una app hecha con Lovable (sin exponer tus claves)", desc="Guía paso a paso para integrar Mercado Pago Checkout Pro en una app de Lovable con Supabase Edge Functions, webhooks y claves seguras."),
@@ -309,7 +311,7 @@ def write(path, content):
 def prose_page(lang, path, title, desc, inner, alts=None, schema=None, og=None):
     return page(lang, path, title, desc, f'<article class="wrap prose" style="padding:3rem 0 5rem">{inner}</article>', alts, schema, og=og)
 
-from content import POST_BODIES, POST_FAQ, ABOUT
+from content import POST_BODIES, POST_FAQ, POST_HOWTO, POST_FAQ_PT, ABOUT
 import markdown, re as _re
 LEGAL_SRC = os.environ.get("LEGAL", "/workspace/quiposa/legal")
 # (doc, {lang: path}) — source: legal/<doc>.<lang>.md (single source of truth, see quiposa/legal/README.md)
@@ -353,6 +355,10 @@ for p in POSTS:
         {"@type":"ListItem","position":2,"name":"Blog","item":BASE+BLOG_ROOT[lang]},
         {"@type":"ListItem","position":3,"name":p["title"],"item":BASE+path}]})
     if faqs: sch.append({"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":q,"acceptedAnswer":{"@type":"Answer","text":ans}} for q,ans in faqs]})
+    howto = POST_HOWTO.get(p["slug"])
+    if howto:
+        sch.append({"@context":"https://schema.org","@type":"HowTo","name":howto["name"],"description":howto["description"],
+            "step":[{"@type":"HowToStep","position":i,"name":n,"text":t} for i,(n,t) in enumerate(howto["steps"],1)]})
     faq_html = (f'<h2>{bt["faq"]}</h2>' + "".join(f'<details><summary>{q}</summary><p>{ans}</p></details>' for q,ans in faqs)) if faqs else ""
     inner = f'<nav aria-label="Breadcrumb" class="mono"><a href="{BASE}{LOCALES[lang][1]}">{bt["home"]}</a> / <a href="{BASE}{BLOG_ROOT[lang]}">Blog</a> · {fdate(p["date"], lang)}</nav><h1 style="font-size:clamp(2rem,4.5vw,3.4rem)">{p["title"]}</h1>' + POST_BODIES[p["slug"]] + faq_html + f'<div class="report"><h3>{bt["ch"]}</h3><p>{bt["cp"]}</p><div class="ctas"><a class="btn a" href="{BASE}{bt["scan"]}">{bt["cb"]}</a><a class="btn s" style="color:var(--sal);border-color:var(--sal)" href="{W["fix"]}" rel="noopener">Fix Pack $29</a></div></div>'
     ogp = f"/assets/og/{lang}-{p['slug']}.png"
@@ -411,7 +417,9 @@ llms = f"""# LaunchLatam
 ## Perguntas frequentes (pt)
 """ + "".join(f"- **{q}** {a}\n" for q,a in C["pt"]["faq"]) + f"""
 ## Answers from our articles (es/pt)
-""" + "".join(f"- **{q}** {a} Source: {BASE}{post_path(p)}\n" for p in POSTS for q,a in POST_FAQ.get(p["slug"], [])) + f"""
+""" + "".join(f"- **{q}** {a} Source: {BASE}{post_path(p)}\n" for p in POSTS for q,a in POST_FAQ.get(p["slug"], [])) + """
+## Respostas citáveis em português (artigos em espanhol)
+""" + "".join(f"- **{q}** {a} Source: {BASE}{post_path(next(p for p in POSTS if p['slug']==slug))}\n" for slug, faqs in POST_FAQ_PT.items() for q,a in faqs) + f"""
 ## Contact
 {MAIL}
 """
