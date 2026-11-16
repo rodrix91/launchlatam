@@ -1,0 +1,10 @@
+{
+  "name": "launchlatam-urlscan-worker",
+  "private": true,
+  "type": "module",
+  "description": "LaunchLatam URL scan Level A (passive) - Cloudflare Worker, free plan",
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "dev:mock": "node dev/serve.mjs"
+  }
+}

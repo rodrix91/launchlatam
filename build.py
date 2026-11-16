@@ -25,6 +25,11 @@ LOGO = '<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="1
 PERSON = {"@type":"Person","name":"Rodrigo Pantoja Navajas","jobTitle":"Data Science Manager","url":BASE+"/sobre/","sameAs":["https://x.com/RODRX_NOVA","https://www.linkedin.com/in/rodrigo-p-625862153"]}
 GC_SCRIPT = " https://gc.zgo.at" if GOATCOUNTER else ""
 GC_CONNECT = GC_IMG = " https://*.goatcounter.com" if GOATCOUNTER else ""
+# T-108 URL scan (Level A). Worker origin, e.g. "https://launchlatam-urlscan.<subdomain>.workers.dev".
+# PLACEHOLDER: empty = URL mode not rendered and CSP unchanged (the live site stays exactly as on main).
+# Only set it (env URLSCAN_WORKER) for local QA builds until Terms/Privacy are updated and Rodrigo approves.
+URLSCAN_WORKER = os.environ.get("URLSCAN_WORKER", "").rstrip("/")
+URLSCAN_CONNECT = (" " + URLSCAN_WORKER) if URLSCAN_WORKER else ""
 GC_TAG = f'<script data-goatcounter="https://{GOATCOUNTER}.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>' if GOATCOUNTER else ""
 LOCALES = {"es": ("es-419", "/"), "pt": ("pt-BR", "/pt/"), "en": ("en", "/en/")}
 
@@ -55,7 +60,7 @@ def page(lang, path, title, desc, body, alts=None, schema=None, dock=None, og=No
     return f'''<!doctype html><html lang="{hl}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{html.escape(title)}</title><meta name="description" content="{html.escape(desc)}">
 <link rel="canonical" href="{url}">{alt_links}
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-PLACEHOLDER'{GC_SCRIPT}; style-src 'self' 'unsafe-inline'; img-src 'self' data:{GC_IMG}; font-src 'self'; connect-src https://api.github.com https://raw.githubusercontent.com{GC_CONNECT}; form-action 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-PLACEHOLDER'{GC_SCRIPT}; style-src 'self' 'unsafe-inline'; img-src 'self' data:{GC_IMG}; font-src 'self'; connect-src https://api.github.com https://raw.githubusercontent.com{GC_CONNECT}{URLSCAN_CONNECT}; form-action 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="google-site-verification" content="ZtPoEPg8NinMyCsJ78acEyxd46AO3bJxT2z6dfDGVHA" />
 <meta name="theme-color" content="#1E1412"><link rel="icon" href="{BASE}/assets/favicon.svg" type="image/svg+xml">
@@ -224,13 +229,41 @@ SELF = {
  "en": ("Guided check",[("Is Row Level Security enabled on every Supabase table?","Enable RLS with per-user policies on every table."),("Are secret keys (service_role, Stripe sk_, OpenAI) server-side only?","Move secret keys server-side and rotate them."),("Can customers pay with a local method (Mercado Pago, Pix, OXXO)?","Add a local payment method."),("Do you publish a privacy policy and terms?","Publish privacy and terms per your country's law."),("Do you confirm user emails at signup?","Turn on email confirmation."),("Do you back up your database?","Turn on automated backups.")],"Yes","No","See my score"),
 }
 
+# T-108 URL scan copy (only rendered when URLSCAN_WORKER is set).
+UCOPY = {
+ "es": dict(leg="¿Qué querés revisar?", repo="Repo público", url="URL de la app", lab="URL de tu app", ph="https://mi-app.lovable.app", btn="Revisar URL",
+   consent="Soy dueño o dueña de esta app, o tengo permiso de quien lo es, para revisarla.",
+   disc="Chequeo pasivo: leemos solo lo que ve cualquier visitante (la página, el JavaScript público y las cabeceras HTTP), sin iniciar sesión, sin enviar formularios y sin probar ataques. No es una auditoría ni un pentest. No guardamos la URL ni los resultados, y las claves se muestran enmascaradas.",
+   terms="Términos", tp="/terminos/"),
+ "pt": dict(leg="O que você quer verificar?", repo="Repo público", url="URL do app", lab="URL do seu app", ph="https://meu-app.lovable.app", btn="Verificar URL",
+   consent="Sou dono ou dona deste app, ou tenho permissão de quem é, para verificá-lo.",
+   disc="Verificação passiva: lemos apenas o que qualquer visitante vê (a página, o JavaScript público e os cabeçalhos HTTP), sem fazer login, sem enviar formulários e sem testar ataques. Não é uma auditoria nem um pentest. Não guardamos a URL nem os resultados, e as chaves aparecem mascaradas.",
+   terms="Termos", tp="/pt/termos/"),
+ "en": dict(leg="What do you want to check?", repo="Public repo", url="App URL", lab="Your app URL", ph="https://my-app.lovable.app", btn="Check URL",
+   consent="I own this app, or I have the owner's permission to check it.",
+   disc="Passive check: we only read what any visitor sees (the page, public JavaScript and HTTP headers), with no login, no form submission and no attack testing. It is not an audit or a pentest. We don't store the URL or the results, and keys are shown masked.",
+   terms="Terms", tp="/en/terms/"),
+}
+def url_modes(lang):
+    if not URLSCAN_WORKER: return ""
+    u = UCOPY[lang]
+    return f'<fieldset class="modes"><legend>{u["leg"]}</legend><label><input type="radio" name="scanmode" value="repo" checked> {u["repo"]}</label><label><input type="radio" name="scanmode" value="url"> {u["url"]}</label></fieldset>\n'
+def url_form(lang):
+    if not URLSCAN_WORKER: return ""
+    u = UCOPY[lang]
+    return (f'<form id="url-form" class="field" style="max-width:640px" novalidate hidden data-worker="{html.escape(URLSCAN_WORKER)}"><label for="appurl">{u["lab"]}</label>'
+            f'<div style="display:flex;gap:.6rem;flex-wrap:wrap"><input id="appurl" name="appurl" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="{u["ph"]}" required style="flex:1;min-width:220px"><button class="btn p" type="submit">{u["btn"]}</button></div>'
+            f'<label class="consent"><input type="checkbox" id="url-consent" name="consent" value="1" required> <span>{u["consent"]}</span></label>'
+            f'<p class="muted disc">{u["disc"]} <a href="{BASE}{u["tp"]}">{u["terms"]}</a>.</p>'
+            f'<p id="url-status" role="status" aria-live="polite" class="mono"></p></form>\n')
+
 def scan_block(lang, c, standalone=False):
     st, qs, y, n, b = SELF[lang]
     fs = "".join(f'<fieldset class="q" data-fix="{html.escape(fix)}"><legend>{html.escape(q)}</legend><label><input type="radio" name="q{i}" value="yes"> {y}</label><label><input type="radio" name="q{i}" value="no"> {n}</label></fieldset>' for i,(q,fix) in enumerate(qs))
     hx = "h1" if standalone else "h2"
     return f'''<section id="escaneo"><div class="wrap"><p class="mono">{c["sk"]}</p><{hx}>{c["sh"]}</{hx}><p class="muted" style="max-width:60ch">{c["sp"]}</p>
-<form id="scan-form" class="field" style="max-width:640px" novalidate><label for="repo">{c["slab"]}</label><div style="display:flex;gap:.6rem;flex-wrap:wrap"><input id="repo" name="repo" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="{c["sph"]}" required style="flex:1;min-width:220px"><button class="btn p" type="submit">{c["sbtn"]}</button></div><p id="scan-status" role="status" aria-live="polite" class="mono"></p></form>
-<div id="scan-out" class="report" hidden aria-live="polite"></div>
+{url_modes(lang)}<form id="scan-form" class="field" style="max-width:640px" novalidate><label for="repo">{c["slab"]}</label><div style="display:flex;gap:.6rem;flex-wrap:wrap"><input id="repo" name="repo" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="{c["sph"]}" required style="flex:1;min-width:220px"><button class="btn p" type="submit">{c["sbtn"]}</button></div><p id="scan-status" role="status" aria-live="polite" class="mono"></p></form>
+{url_form(lang)}<div id="scan-out" class="report" hidden aria-live="polite"></div>
 <details style="margin-top:2rem;max-width:760px"><summary>{c["priv"]}</summary><p>{c["privp"]} <a href="mailto:{MAIL}">{MAIL}</a>.</p>
 <form id="self-check"><h3>{st}</h3>{fs}<button class="btn p" type="submit">{b}</button></form><div id="self-out" class="report" hidden aria-live="polite"></div></details></div></section>'''
 

@@ -1,0 +1,20 @@
+# LaunchLatam URL scan (Level A). Free plan only. No account_id on purpose: John creates the account later.
+# Do NOT deploy before Terms/Privacy are updated and Rodrigo approves (T-108).
+name = "launchlatam-urlscan-PLACEHOLDER"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+workers_dev = true
+
+[vars]
+# Comma-separated list of origins allowed to call /scan (CORS + server-side Origin check).
+ALLOWED_ORIGINS = "https://rodrix91.github.io"
+# "0" disables the DNS-over-HTTPS private-IP check (keep "1" in production).
+DOH_CHECK = "1"
+# Per-isolate fixed-window limits (scans per 10 minutes).
+RL_IP_PER_10MIN = "10"
+RL_DOMAIN_PER_10MIN = "6"
+
+# Optional cross-isolate rate limit (KV free tier). Uncomment with the block in src/index.js.
+# [[kv_namespaces]]
+# binding = "RL_KV"
+# id = "PLACEHOLDER"

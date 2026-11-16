@@ -113,3 +113,9 @@ body{overflow-x:clip}
 html{overflow-x:clip}@media (max-width:900px){.stamp{right:8px}}
 .btn.a,.dock a.go,.ticket.hot .btn.p{background:var(--achiote-btn);border-color:var(--achiote-btn)}
 .btn.a:hover,.dock a.go:hover,.ticket.hot .btn.p:hover{background:#952E10;border-color:#952E10}
+#scan-form[hidden],#url-form[hidden]{display:none}
+.modes{border:0;padding:0;margin:0 0 1rem;display:flex;flex-wrap:wrap;gap:.5rem}.modes legend{font-weight:700;padding:0;margin-bottom:.4rem}
+.modes label{display:inline-flex;align-items:center;gap:.45rem;min-height:44px;padding:.45rem 1rem;border:2px solid var(--volcan);border-radius:999px;background:var(--sal);cursor:pointer}
+.modes label:has(input:checked){background:var(--volcan);color:var(--sal)}.modes input,.consent input{width:20px;height:20px;accent-color:var(--achiote-ink)}
+.consent{display:flex!important;flex-direction:row;gap:.55rem;align-items:flex-start;font-weight:400;margin-top:.4rem}.consent input{flex:none;margin-top:.2rem}
+.disc{font-size:.92rem;max-width:62ch;margin:.2rem 0 0}.pill.info{background:#3A2D29;color:#E9CBA6}.finding code{font-family:var(--mono);font-size:.8rem;opacity:.85}
