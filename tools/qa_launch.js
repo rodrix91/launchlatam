@@ -6,7 +6,9 @@ const MODE = process.argv[2] || 'local'; const BASE = 'https://rodrix91.github.i
 const WORKER = 'https://launchlatam-urlscan.rodrixlabs-launchlatam-cloudflare.workers.dev';
 const PAGES = MODE === 'live'
   ? [['es', '/', 'https://www.python.org'], ['pt', '/pt/', 'https://www.debian.org'], ['en', '/en/', 'https://www.w3.org'], ['es-escaneo', '/escaneo/', 'https://www.rust-lang.org']]
-  : [['es', '/', 'https://example.com'], ['pt', '/pt/', 'https://www.iana.org'], ['en', '/en/', 'https://www.wikipedia.org'], ['es-escaneo', '/escaneo/', 'https://www.mozilla.org']];
+  : (process.env.ALT ? [['es', '/', 'https://www.kernel.org'], ['pt', '/pt/', 'https://www.apache.org'], ['en', '/en/', 'https://www.php.net'], ['es-escaneo', '/escaneo/', 'https://www.ruby-lang.org']]
+     : [['es', '/', 'https://example.com'], ['pt', '/pt/', 'https://www.iana.org'], ['en', '/en/', 'https://www.wikipedia.org'], ['es-escaneo', '/escaneo/', 'https://www.mozilla.org']]);
+const COPY = { es: 'En modo URL, la consulta pasa por nuestro relay', 'es-escaneo': 'En modo URL, la consulta pasa por nuestro relay', pt: 'No modo URL, a consulta passa pelo nosso relay', en: 'In URL mode, the request goes through our relay' };
 const MIME = { html: 'text/html; charset=utf-8', js: 'application/javascript', css: 'text/css', svg: 'image/svg+xml', png: 'image/png', xml: 'application/xml', json: 'application/json', webp: 'image/webp', woff2: 'font/woff2', ico: 'image/x-icon', txt: 'text/plain' };
 const results = []; const ok = (lang, name, pass, info = '') => { results.push({ lang, name, pass, info }); console.log((pass ? 'PASS' : 'FAIL'), lang, name, info); };
 (async () => {
@@ -28,6 +30,13 @@ const results = []; const ok = (lang, name, pass, info = '') => { results.push({
       if (mockRL) return r.fulfill({ status: 429, headers: { 'Access-Control-Allow-Origin': 'https://rodrix91.github.io', 'Content-Type': 'application/json' }, body: '{"ok":false,"error":"rate_limited","retry_after":600}' });
       return r.continue(); });
     await pg.goto(BASE + p, { waitUntil: 'networkidle' });
+    ok(lang, 'scanner copy (repo vs URL relay)', (await pg.textContent('#escaneo')).includes(COPY[lang]));
+    if (lang === 'es' || lang === 'en') { // repo mode still works (GitHub API, unauthenticated: keep it to 2 pages)
+      await pg.fill('#repo', 'david210690/lovable-supabase-mvp-starter'); await pg.click('#scan-form button');
+      await pg.waitForFunction(() => !document.getElementById('scan-out').hidden, null, { timeout: 60000 }).catch(() => {});
+      const rt = (await pg.textContent('#scan-out')) || ''; ok(lang, 'repo mode scan renders', /\d+\/100|lovable-supabase-mvp-starter/.test(rt), rt.slice(0, 80).replace(/\s+/g, ' '));
+      await pg.screenshot({ path: `/workspace/qa-shots/launch-${MODE}-${lang}-repo.png` });
+    }
     ok(lang, 'url mode toggle present', await pg.locator('input[name=scanmode][value=url]').count() === 1);
     await pg.check('input[name=scanmode][value=url]');
     ok(lang, 'url form visible after toggle', await pg.isVisible('#url-form') && !(await pg.isVisible('#scan-form')));
