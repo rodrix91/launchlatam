@@ -56,11 +56,12 @@ def page(lang, path, title, desc, body, alts=None, schema=None, dock=None, og=No
             items.append(f'<a{cl} href="{BASE}{home}{h}"><span class="n">{i+1:02d}</span>{t}</a>')
     nav_lbl={"es":"Principal","pt":"Principal","en":"Main"}[lang]
     dock_html = f'<nav class="dock" aria-label="{nav_lbl}">' + "".join(items) + '</nav>'
+    uc = URLSCAN_CONNECT if 'id="url-form"' in body else ""  # T-108: worker origin only on pages with the URL form
 
     return f'''<!doctype html><html lang="{hl}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{html.escape(title)}</title><meta name="description" content="{html.escape(desc)}">
 <link rel="canonical" href="{url}">{alt_links}
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-PLACEHOLDER'{GC_SCRIPT}; style-src 'self' 'unsafe-inline'; img-src 'self' data:{GC_IMG}; font-src 'self'; connect-src https://api.github.com https://raw.githubusercontent.com{GC_CONNECT}{URLSCAN_CONNECT}; form-action 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-PLACEHOLDER'{GC_SCRIPT}; style-src 'self' 'unsafe-inline'; img-src 'self' data:{GC_IMG}; font-src 'self'; connect-src https://api.github.com https://raw.githubusercontent.com{GC_CONNECT}{uc}; form-action 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="google-site-verification" content="ZtPoEPg8NinMyCsJ78acEyxd46AO3bJxT2z6dfDGVHA" />
 <meta name="theme-color" content="#1E1412"><link rel="icon" href="{BASE}/assets/favicon.svg" type="image/svg+xml">

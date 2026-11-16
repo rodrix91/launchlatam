@@ -58,8 +58,14 @@ URLSCAN_WORKER=http://127.0.0.1:8787 BASE=http://127.0.0.1:8767/launchlatam OUT=
 ```
 `dev/serve.mjs` injects `env.__fetchForTests`; this cannot be set from `wrangler.toml` (functions aren't bindable), so it never applies in production.
 
-## Deploy (later, by decision of John + OK from Rodrigo — NOT now)
-1. John creates the free Cloudflare account; set `name` in `wrangler.toml` (no `account_id` committed; use `CLOUDFLARE_ACCOUNT_ID` env).
+## Launch (only after the Cloudflare account exists; legal texts approved by Rodrigo via John 2026-11-16 11:20)
+Legal pages are generated from `/workspace/quiposa/legal/` (outside the repo, used by every main build), so it stays untouched
+until launch. The final opt-in texts (Terms clause 14 + Privacy "URL scan" subsection, dated 2026-11-16) live in
+`/workspace/quiposa/legal-proposals/urlscan-2026-11-16/final/` (same file names as legal/). Preview: `LEGAL=<final dir> URLSCAN_WORKER=<origin> python3 build.py`.
+1. John creates the free Cloudflare account; set `name` in `wrangler.toml` (no `account_id` committed). Keep Workers Logs/Logpush/Tail off.
 2. `npx wrangler deploy` → `https://<name>.<subdomain>.workers.dev`.
-3. Set `URLSCAN_WORKER` in `build.py` to that origin (adds it to the page CSP `connect-src` and renders the toggle).
-4. Publish updated Terms/Privacy first, then the site.
+3. Merge this branch into main, then `/workspace/quiposa/tools/launch_urlscan.sh https://<name>.<subdomain>.workers.dev`
+   (backs up legal/, copies final/ into legal/, sets the `URLSCAN_WORKER` default in build.py, rebuilds; no commit/deploy).
+4. QA, commit, `git push origin main`, `./deploy.sh`.
+
+The worker origin is added to the CSP `connect-src` only on pages that render the URL form (/, /escaneo/, /pt/, /en/).
