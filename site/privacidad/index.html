@@ -13,7 +13,7 @@
 <a class="skip" href="#main">Saltar al contenido</a>
 <header class="wrap mast"><a class="brand" href="https://rodrix91.github.io/launchlatam/"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="4 3"/><path d="M11 25 L20 10 L29 25 Z" fill="#E2522B"/><path d="M14 29h12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg><span>LaunchLatam</span></a><div class="lang" aria-label="Idioma / Language"><a href="https://rodrix91.github.io/launchlatam/privacidad/" hreflang="es-419" lang="es-419" aria-current="true">ES</a><a href="https://rodrix91.github.io/launchlatam/pt/privacidade/" hreflang="pt-BR" lang="pt-BR">PT</a><a href="https://rodrix91.github.io/launchlatam/en/privacy/" hreflang="en" lang="en">EN</a></div></header>
 <main id="main"><article class="wrap prose" style="padding:3rem 0 5rem"><h1>Política de privacidad · LaunchLatam</h1>
-<p>Última actualización: 31 de octubre de 2026</p>
+<p>Última actualización: 16 de noviembre de 2026 (se agregó el apartado «Escaneo por URL»; el resto no cambió)</p>
 <p><strong>Responsable del tratamiento:</strong> Quiposa (nombre comercial), cuyo titular es Rodrigo Pantoja Navajas, persona física sin sociedad constituida, que opera desde Bolivia, Argentina y Paraguay. Producto: LaunchLatam. Contacto: <a href="mailto:rodrixlabs@mail.grokbot.com">rodrixlabs@mail.grokbot.com</a>.</p>
 <h2>Qué datos recogemos</h2>
 <ul>
@@ -24,6 +24,14 @@
 <li><strong>Correo:</strong> si nos escribís a <a href="mailto:rodrixlabs@mail.grokbot.com">rodrixlabs@mail.grokbot.com</a>, guardamos el intercambio para responderte.</li>
 <li><strong>Acceso a tu repositorio:</strong> solo si compraste un servicio y nos invitás como colaborador. Lo usamos únicamente para el trabajo contratado y podés quitar el acceso cuando quieras. Tu código lo procesan únicamente los agentes de IA de Grok Bot que operan Quiposa, con revisión y aprobación antes de aplicar cualquier cambio en tu app. No intervienen herramientas de IA de terceros, y si eso cambia vamos a actualizar esta política.</li>
 </ul>
+<h3>Escaneo por URL (solo si lo usás)</h3>
+<p>Este apartado se aplica solo a quien usa el modo «URL de la app» del escaneo gratis y marca la casilla de consentimiento. El resto de esta política no cambia.
+- <strong>Qué se procesa:</strong> la URL que indicás se envía a nuestro servicio de escaneo, que funciona sobre Cloudflare Workers. Ese servicio descarga la página pública, hasta 10 archivos JavaScript públicos y las cabeceras HTTP de esa URL, los analiza en memoria y te devuelve el resultado; al terminar la solicitud se descarta todo. Si la página o sus archivos públicos contienen datos personales, solo se procesan en memoria durante el escaneo.
+- <strong>Qué no guardamos:</strong> la URL, el contenido descargado, las claves detectadas (que se muestran enmascaradas) ni los resultados. No activamos registros (logs) del servicio.
+- <strong>Límites antiabuso:</strong> el servicio usa tu dirección IP y el dominio escaneado como contadores temporales en memoria (ventanas de 10 minutos), que no se guardan.
+- <strong>Analítica:</strong> los eventos de uso del escaneo que contamos con GoatCounter (por ejemplo, «escaneo iniciado» o un rango de puntaje) son categorías generales y nunca incluyen la URL ni los hallazgos.
+- <strong>Base legal:</strong> tu solicitud. Los datos se usan solo durante esa solicitud y no se conservan.
+- <strong>Proveedor:</strong> Cloudflare (Cloudflare, Inc., Estados Unidos), infraestructura (Cloudflare Workers) que ejecuta el escaneo. La solicitud puede procesarse en el centro de datos de Cloudflare más cercano a vos, dentro o fuera de tu país. Como proveedor de infraestructura, Cloudflare procesa datos técnicos de la conexión (como la IP) para prestar y proteger el servicio, según su propia política de privacidad.</p>
 <h2>Qué no hacemos</h2>
 <p>No usamos cookies, ni de seguimiento ni de publicidad, en el sitio. No vendemos tus datos. No te pedimos contraseñas ni la clave service_role de Supabase.</p>
 <h2>Base legal y conservación</h2>

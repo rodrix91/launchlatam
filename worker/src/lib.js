@@ -291,6 +291,15 @@ export function score(findings) {
 }
 
 // ---------- rate limiting (fixed window, per isolate) ----------
+// Rate-limit key for a client IP: IPv4 as is, IPv6 by its /64 prefix (one host usually owns a whole /64 and rotates inside it).
+export function ipKey(ip) {
+  ip = String(ip || "unknown").trim().toLowerCase();
+  if (!ip.includes(":")) return ip;
+  const [h, t = ""] = ip.split("::");
+  const head = h ? h.split(":") : [], tail = ip.includes("::") ? (t ? t.split(":") : []) : [];
+  const full = ip.includes("::") ? [...head, ...Array(Math.max(0, 8 - head.length - tail.length)).fill("0"), ...tail] : head;
+  return full.slice(0, 4).map(x => (parseInt(x, 16) || 0).toString(16)).join(":") + "::/64";
+}
 export class RateLimiter {
   constructor(limit, windowMs, now = () => Date.now()) { this.limit = limit; this.windowMs = windowMs; this.now = now; this.m = new Map(); }
   hit(key) {

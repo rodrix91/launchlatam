@@ -1,9 +1,16 @@
-# LaunchLatam URL scan (Level A). Free plan only. No account_id on purpose: John creates the account later.
-# Do NOT deploy before Terms/Privacy are updated and Rodrigo approves (T-108).
-name = "launchlatam-urlscan-PLACEHOLDER"
+# LaunchLatam URL scan (Level A). Free plan only. No account_id in the repo (set CLOUDFLARE_ACCOUNT_ID at deploy time).
+# Approved by Rodrigo 2026-11-16. Logs/observability MUST stay off (privacy promise: no URL is logged).
+name = "launchlatam-urlscan"
 main = "src/index.js"
 compatibility_date = "2026-11-01"
 workers_dev = true
+preview_urls = false
+
+[observability]
+enabled = false
+
+[observability.logs]
+enabled = false
 
 [vars]
 # Comma-separated list of origins allowed to call /scan (CORS + server-side Origin check).
@@ -13,6 +20,15 @@ DOH_CHECK = "1"
 # Per-isolate fixed-window limits (scans per 10 minutes).
 RL_IP_PER_10MIN = "10"
 RL_DOMAIN_PER_10MIN = "6"
+
+# Cross-isolate rate limit: one in-memory Durable Object (SQLite-backed class = free plan; it never writes storage).
+[[durable_objects.bindings]]
+name = "LIMITER"
+class_name = "Limiter"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Limiter"]
 
 # Optional cross-isolate rate limit (KV free tier). Uncomment with the block in src/index.js.
 # [[kv_namespaces]]

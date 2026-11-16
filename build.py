@@ -28,7 +28,7 @@ GC_CONNECT = GC_IMG = " https://*.goatcounter.com" if GOATCOUNTER else ""
 # T-108 URL scan (Level A). Worker origin, e.g. "https://launchlatam-urlscan.<subdomain>.workers.dev".
 # PLACEHOLDER: empty = URL mode not rendered and CSP unchanged (the live site stays exactly as on main).
 # Only set it (env URLSCAN_WORKER) for local QA builds until Terms/Privacy are updated and Rodrigo approves.
-URLSCAN_WORKER = os.environ.get("URLSCAN_WORKER", "").rstrip("/")
+URLSCAN_WORKER = os.environ.get("URLSCAN_WORKER", "https://launchlatam-urlscan.rodrixlabs-launchlatam-cloudflare.workers.dev").rstrip("/")
 URLSCAN_CONNECT = (" " + URLSCAN_WORKER) if URLSCAN_WORKER else ""
 GC_TAG = f'<script data-goatcounter="https://{GOATCOUNTER}.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>' if GOATCOUNTER else ""
 LOCALES = {"es": ("es-419", "/"), "pt": ("pt-BR", "/pt/"), "en": ("en", "/en/")}

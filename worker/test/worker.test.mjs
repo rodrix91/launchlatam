@@ -1,16 +1,16 @@
 // node --test test/   (offline: all network is faked by dev/fixtures.mjs)
 import test from "node:test";
 import assert from "node:assert/strict";
-import { checkTarget, isPrivateIPv4, isPrivateIPv6, mask, scanText, jwtRole, checkHeaders, extractScriptUrls, extractChunkUrls, isSameSiteScript, registrableDomain, RateLimiter, signals, buildFindings, score } from "../src/lib.js";
+import { checkTarget, isPrivateIPv4, isPrivateIPv6, mask, scanText, jwtRole, checkHeaders, extractScriptUrls, extractChunkUrls, isSameSiteScript, registrableDomain, RateLimiter, signals, buildFindings, score, ipKey } from "../src/lib.js";
 import worker, { handle } from "../src/index.js";
 import { makeFetch, SECRETS } from "../dev/fixtures.mjs";
 
 const ORIGIN = "https://rodrix91.github.io";
 let ipN = 0;
-async function call(target, { consent = "1", origin = ORIGIN, method = "GET", log = [], ip } = {}) {
+async function call(target, { consent = "1", origin = ORIGIN, method = "GET", log = [], ip, env = {} } = {}) {
   const q = new URLSearchParams({ url: target, ...(consent ? { consent } : {}) });
   const req = new Request("https://w.example.workers.dev/scan?" + q, { method, headers: { ...(origin ? { Origin: origin } : {}), "CF-Connecting-IP": ip || "198.51.100." + (++ipN % 250) } });
-  const res = await worker.fetch(req, { ALLOWED_ORIGINS: ORIGIN, __fetchForTests: makeFetch(log) });
+  const res = await worker.fetch(req, { ALLOWED_ORIGINS: ORIGIN, __fetchForTests: makeFetch(log), ...env });
   const text = await res.text();
   return { status: res.status, body: JSON.parse(text), text, headers: res.headers };
 }
@@ -100,6 +100,15 @@ test("script discovery is same-site only", () => {
   assert.deepEqual(extractChunkUrls('import("./chunk-9.js");n="/assets/v.js"', "https://a.com/assets/i.js"), ["https://a.com/assets/chunk-9.js", "https://a.com/assets/v.js"]);
 });
 
+test("ipKey: IPv4 as is, IPv6 by /64", () => {
+  assert.equal(ipKey("198.51.100.7"), "198.51.100.7");
+  assert.equal(ipKey("2a09:bac1:1f80:12::3:1"), "2a09:bac1:1f80:12::/64");
+  assert.equal(ipKey("2a09:BAC1:1f80:0012:aaaa:bbbb:cccc:dddd"), "2a09:bac1:1f80:12::/64");
+  assert.equal(ipKey("2001:db8::1"), "2001:db8:0:0::/64");
+  assert.equal(ipKey("::1"), "0:0:0:0::/64");
+  assert.equal(ipKey(""), "unknown");
+});
+
 test("rate limiter fixed window", () => {
   let t = 0; const rl = new RateLimiter(2, 1000, () => t);
   assert.equal(rl.hit("a").ok, true); assert.equal(rl.hit("a").ok, true); assert.equal(rl.hit("a").ok, false);
@@ -176,6 +185,22 @@ test("worker: rate limit per target domain", async () => {
   let last;
   for (let i = 0; i < 7; i++) last = await call("https://fixture-medium.com.br/");
   assert.equal(last.status, 429); assert.equal(last.body.error, "rate_limited"); assert.ok(+last.headers.get("Retry-After") > 0);
+});
+
+test("worker: cross-isolate limiter object (per IP and per domain, memory only)", async () => {
+  const { Limiter } = await import("../src/index.js");
+  const mkNs = () => { const obj = new Limiter(); return { idFromName: (n) => n, get: () => ({ fetch: (u, init) => obj.fetch(new Request(u, init)) }) }; };
+  const env = { LIMITER: mkNs(), RL_IP_PER_10MIN: "2" };
+  assert.notEqual((await call("https://app.fixture-dirty.com/", { ip: "203.0.113.9", env })).status, 429);
+  assert.notEqual((await call("https://app.fixture-dirty.com/", { ip: "203.0.113.9", env })).status, 429);
+  const third = await call("https://app.fixture-dirty.com/", { ip: "203.0.113.9", env });
+  assert.equal(third.status, 429); assert.equal(third.body.error, "rate_limited");
+  const envD = { LIMITER: mkNs(), RL_DOMAIN_PER_10MIN: "1" };
+  assert.notEqual((await call("https://go3.fixture-redirect.com/", { env: envD })).status, 429);
+  assert.equal((await call("https://go3.fixture-redirect.com/", { env: envD })).body.error, "rate_limited");
+  const broken = { LIMITER: { idFromName: () => { throw new Error("x"); } } };
+  assert.notEqual((await call("https://big.fixture-big.com/", { env: broken })).status, 429);
+  assert.ok(!/storage/.test(Limiter.toString()));
 });
 
 test("worker: timeout after 8 s", { timeout: 15000 }, async () => {

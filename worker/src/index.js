@@ -3,13 +3,25 @@
 // Never stores anything, never logs content (this file intentionally has no logging calls).
 import {
   UA, LIMITS, checkTarget, checkHostname, isPrivateIPv4, isPrivateIPv6, isIPv4, extractScriptUrls, extractChunkUrls,
-  isSameSiteScript, registrableDomain, scanText, signals, mergeSignals, checkHeaders, buildFindings, score, RateLimiter,
+  isSameSiteScript, registrableDomain, scanText, signals, mergeSignals, checkHeaders, buildFindings, score, RateLimiter, ipKey,
 } from "./lib.js";
 
 const DEFAULT_ORIGINS = "https://rodrix91.github.io";
 // Fixed-window limits per isolate (defaults: 10 scans / 10 min per client IP, 6 / 10 min per target domain).
 const limiters = new Map();
 function limiter(kind, n) { const k = kind + n; if (!limiters.has(k)) limiters.set(k, new RateLimiter(n, 10 * 60 * 1000)); return limiters.get(k); }
+
+// In-memory limiter object (no ctx.storage calls: nothing is persisted).
+export class Limiter {
+  constructor() { this.l = new Map(); }
+  get(kind, n) { const k = kind + n; if (!this.l.has(k)) this.l.set(k, new RateLimiter(n, 10 * 60 * 1000)); return this.l.get(k); }
+  async fetch(request) {
+    const b = await request.json();
+    const ip = this.get("ip", +b.nIp || 10).hit(String(b.ip));
+    const d = ip.ok ? this.get("d", +b.nD || 6).hit(String(b.d)) : { ok: true, retryAfter: 0 };
+    return new Response(JSON.stringify({ ip, d }), { headers: { "Content-Type": "application/json" } });
+  }
+}
 
 export default {
   async fetch(request, env, ctx) {
@@ -51,9 +63,19 @@ export async function handle(request, env) {
   const t = checkTarget(String(p.url || ""));
   if (!t.ok) return json({ ok: false, error: t.reason }, t.reason === "blocked_target" ? 403 : 400, okOrigin);
 
-  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
-  const rl1 = limiter("ip", +env.RL_IP_PER_10MIN || 10).hit("ip:" + ip);
-  const rl2 = limiter("d", +env.RL_DOMAIN_PER_10MIN || 6).hit("d:" + registrableDomain(t.url.hostname));
+  const ip = ipKey(request.headers.get("CF-Connecting-IP") || "unknown");
+  const dom = registrableDomain(t.url.hostname);
+  let rl1 = limiter("ip", +env.RL_IP_PER_10MIN || 10).hit("ip:" + ip);
+  let rl2 = limiter("d", +env.RL_DOMAIN_PER_10MIN || 6).hit("d:" + dom);
+  // Cross-isolate limit: one in-memory Durable Object (free plan). Counters live only in its memory, never in storage,
+  // so they reset if the object is evicted after idling. The per-isolate limiter above stays as a fallback.
+  if (rl1.ok && rl2.ok && env.LIMITER) {
+    try {
+      const stub = env.LIMITER.get(env.LIMITER.idFromName("global"));
+      const r = await (await stub.fetch("https://limiter/hit", { method: "POST", body: JSON.stringify({ ip: "ip:" + ip, d: "d:" + dom, nIp: +env.RL_IP_PER_10MIN || 10, nD: +env.RL_DOMAIN_PER_10MIN || 6 }) })).json();
+      rl1 = r.ip; rl2 = r.d;
+    } catch { /* limiter unavailable: keep per-isolate result */ }
+  }
   // Optional cross-isolate limit with a KV namespace (free tier: 1k writes/day). Uncomment together with the binding in wrangler.toml.
   // if (env.RL_KV) { const k = "ip:" + ip + ":" + Math.floor(Date.now() / 600000); const n = +(await env.RL_KV.get(k) || 0) + 1; await env.RL_KV.put(k, String(n), { expirationTtl: 900 }); if (n > 20) return json({ ok: false, error: "rate_limited" }, 429, okOrigin, { "Retry-After": "600" }); }
   if (!rl1.ok || !rl2.ok) return json({ ok: false, error: "rate_limited", retry_after: Math.max(rl1.ok ? 0 : rl1.retryAfter, rl2.ok ? 0 : rl2.retryAfter) }, 429, okOrigin, { "Retry-After": String(Math.max(rl1.retryAfter, rl2.retryAfter)) });
