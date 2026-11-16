@@ -4,12 +4,14 @@
 const { chromium } = require('playwright'); const fs = require('fs'); const path = require('path');
 const MODE = process.argv[2] || 'local'; const BASE = 'https://rodrix91.github.io/launchlatam'; const SITE = '/workspace/launchlatam/site';
 const WORKER = 'https://launchlatam-urlscan.rodrixlabs-launchlatam-cloudflare.workers.dev';
-const PAGES = [['es', '/', 'https://example.com'], ['pt', '/pt/', 'https://www.iana.org'], ['en', '/en/', 'https://www.wikipedia.org'], ['es-escaneo', '/escaneo/', 'https://www.mozilla.org']];
+const PAGES = MODE === 'live'
+  ? [['es', '/', 'https://www.python.org'], ['pt', '/pt/', 'https://www.debian.org'], ['en', '/en/', 'https://www.w3.org'], ['es-escaneo', '/escaneo/', 'https://www.rust-lang.org']]
+  : [['es', '/', 'https://example.com'], ['pt', '/pt/', 'https://www.iana.org'], ['en', '/en/', 'https://www.wikipedia.org'], ['es-escaneo', '/escaneo/', 'https://www.mozilla.org']];
 const MIME = { html: 'text/html; charset=utf-8', js: 'application/javascript', css: 'text/css', svg: 'image/svg+xml', png: 'image/png', xml: 'application/xml', json: 'application/json', webp: 'image/webp', woff2: 'font/woff2', ico: 'image/x-icon', txt: 'text/plain' };
 const results = []; const ok = (lang, name, pass, info = '') => { results.push({ lang, name, pass, info }); console.log((pass ? 'PASS' : 'FAIL'), lang, name, info); };
 (async () => {
   const b = await chromium.launch({ executablePath: '/usr/bin/google-chrome', args: ['--headless=new'] });
-  for (const [lang, p, target] of PAGES) {
+  for (const [lang, p, target] of PAGES.filter(x => !process.env.ONLY || x[0] === process.env.ONLY)) {
     const ctx = await b.newContext({ viewport: { width: 1280, height: 900 } }); const pg = await ctx.newPage();
     const errs = []; const workerCalls = [];
     pg.on('pageerror', e => errs.push('pageerror ' + e.message)); pg.on('console', m => { if (m.type() === 'error' && !(/Failed to load resource/.test(m.text()) && (m.location().url || '').startsWith(WORKER))) errs.push('console ' + m.text()); });
@@ -37,7 +39,7 @@ const results = []; const ok = (lang, name, pass, info = '') => { results.push({
     ok(lang, 'invalid URL rejected client-side', (await pg.textContent('#url-status')).trim().length > 0 && workerCalls.length === 0);
     const run = async (u) => { await pg.fill('#appurl', u); await pg.click('#url-form button'); await pg.waitForFunction(() => !document.querySelector('#url-form button').disabled && !document.getElementById('scan-out').hidden, null, { timeout: 60000 }); return pg.textContent('#scan-out'); };
     const txt = await run(target);
-    const host = new URL(target).hostname;
+    const host = new URL(target).hostname.replace(/^www\./, '');
     ok(lang, 'result renders (host + score)', txt.includes(host) && /\d+\/100/.test(txt), txt.slice(0, 90).replace(/\s+/g, ' '));
     await pg.screenshot({ path: `/workspace/qa-shots/launch-${MODE}-${lang}-result.png`, fullPage: false });
     for (const [kind, u] of [['blocked', 'http://127.0.0.1'], ['unreachable', 'https://nonexistent-launchlatam-qa-zz9.com']]) {
@@ -58,6 +60,17 @@ const results = []; const ok = (lang, name, pass, info = '') => { results.push({
     ok(lang, 'internal links resolve', bad.length === 0, bad.length ? bad.join(' ') : `${new Set(links).size} links`);
     ok(lang, '0 JS/CSP errors', errs.length === 0, errs.join(' | ').slice(0, 300));
     await ctx.close();
+  }
+  if (MODE === 'live' && !process.env.ONLY) { // real (not mocked) rate limit through the UI: 7 scans of one domain within 10 min -> 7th is rate_limited
+    const ctx = await b.newContext(); const pg = await ctx.newPage();
+    await pg.route('https://gc.zgo.at/**', r => r.fulfill({ contentType: 'application/javascript', body: 'window.goatcounter={count:function(){}};' }));
+    await pg.goto(BASE + '/en/', { waitUntil: 'networkidle' }); await pg.check('input[name=scanmode][value=url]'); await pg.check('#url-consent');
+    const seen = [];
+    for (let i = 1; i <= 7; i++) { await pg.fill('#appurl', 'https://www.gnu.org'); await pg.click('#url-form button');
+      await pg.waitForFunction(() => !document.querySelector('#url-form button').disabled && !document.getElementById('scan-out').hidden, null, { timeout: 60000 });
+      seen.push((await pg.getAttribute('#scan-out .ctas', 'data-cta')) || 'result'); }
+    ok('en', 'real rate limit (7th scan of same domain)', seen[6] === 'url_rate_limited' && seen.slice(0, 6).every(x => x !== 'url_rate_limited'), seen.join(','));
+    await pg.screenshot({ path: '/workspace/qa-shots/launch-live-en-real-rate_limited.png' }); await ctx.close();
   }
   // legal pages
   const LEGAL = [['es', '/terminos/', '16 de noviembre de 2026'], ['es', '/privacidad/', '16 de noviembre de 2026'], ['pt', '/pt/termos/', '16 de novembro de 2026'], ['pt', '/pt/privacidade/', '16 de novembro de 2026'], ['en', '/en/terms/', 'November 16, 2026'], ['en', '/en/privacy/', 'November 16, 2026']];
