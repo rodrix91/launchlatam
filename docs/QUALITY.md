@@ -9,7 +9,7 @@ From the repository root, with Python 3.12+ and Node.js 22+:
 ```bash
 python3 -m py_compile build.py content.py tools/og.py tools/check_site.py
 python3 tools/check_site.py
-python3 -m unittest discover -s tests -p 'test_site_validator.py' -v
+python3 -m unittest discover -s tests -p 'test_*.py' -v
 node --check site/assets/scan.js
 node --check worker/src/index.js
 (cd worker && npm test)
@@ -35,3 +35,7 @@ This workflow **does not deploy** the site, invoke real URL scans, test payment 
 The full `build.py` generator is intentionally not run in CI: it relies on externally managed legal Markdown in `/workspace/quiposa/legal` and on build-time dependencies/assets not currently vendored as a portable CI environment. Do not replace legal texts with placeholders or publish auto-generated legal copy simply to make CI pass. A future hermetic build pipeline should use approved, versioned source material and a reproducible dependency manifest.
 
 A passing check validates committed artifacts and offline test cases; it does not establish that the live deployment, third-party checkout, or Cloudflare service is available. Continue manual or separately approved browser, legal, and production checks before deployment.
+
+## GitHub Actions supply-chain controls
+
+The quality workflow pins official checkout, Python and Node setup actions to immutable 40-character commit IDs rather than movable version tags. Its read-only permission scope, disabled credential persistence, unprivileged PR trigger and absence of deployment commands are protected by `tests/test_workflow_security.py`. This reduces the risk of action-reference drift; it is not a substitute for reviewing upstream action updates before updating a pin. All quality checks run on standard GitHub-hosted runners and require no production credentials.
