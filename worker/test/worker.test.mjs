@@ -23,10 +23,10 @@ test("SSRF: rejects IP literals, numeric encodings, private names, ports, scheme
     "https://printer.local/", "http://metadata.google.internal/", "https://intranet/", "https://app.corp/", "https://x.home.arpa/", "https://a.test/",
     "https://127.0.0.1.nip.io/", "https://10-0-0-1.sslip.io/", "https://lvh.me/",
     "https://mi-app.com:8443/", "http://mi-app.com:443/", "https://mi-app.com:80/", "ftp://mi-app.com/", "file:///etc/passwd", "javascript:alert(1)", "gopher://x.com/",
-    "https://user:pass@mi-app.com/", "https://evil.com\\@good.com/", "", "https://" + "a".repeat(2100) + ".com/", "https://app.123/",
+    "https://user:pass@mi-app.com/", "https://evil.com\\@good.com/", "", "https://" + "a".repeat(2100) + ".com/", "https://app.123/", "https://xn--tienda-n3a.com/",
   ];
   for (const u of bad) assert.equal(checkTarget(u).ok, false, u);
-  for (const u of ["https://mi-app.lovable.app", "mi-tienda.com.ar", "http://shop.example-app.com.br/path?q=1", "https://xn--tienda-n3a.com/", "https://www.fixture-clean.com.ar/#x"]) {
+  for (const u of ["https://mi-app.lovable.app", "mi-tienda.com.ar", "http://shop.example-app.com.br/path?q=1", "https://xn--bcher-kva.de/", "https://bücher.de/", "https://www.fixture-clean.com.ar/#x"]) {
     const r = checkTarget(u); assert.equal(r.ok, true, u); assert.equal(r.url.hash, "");
   }
   assert.equal(checkTarget("mi-tienda.com.ar").url.protocol, "https:");
