@@ -39,6 +39,8 @@ jobs:
           node --check worker/src/index.js
       - name: Check committed site integrity
         run: python tools/check_site.py
+      - name: Test validator with synthetic positive and negative fixtures
+        run: python -m unittest discover -s tests -p 'test_site_validator.py' -v
       - name: Run worker security and behavior tests
         working-directory: worker
         run: npm test

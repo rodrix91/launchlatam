@@ -9,12 +9,15 @@ From the repository root, with Python 3.12+ and Node.js 22+:
 ```bash
 python3 -m py_compile build.py content.py tools/og.py tools/check_site.py
 python3 tools/check_site.py
+python3 -m unittest discover -s tests -p 'test_site_validator.py' -v
 node --check site/assets/scan.js
 node --check worker/src/index.js
 (cd worker && npm test)
 ```
 
 No credentials, network calls, Cloudflare account, GitHub token, or deployment commands are needed for these checks.
+
+The isolated validator regression suite creates synthetic HTML, sitemap, assets, robots and manifest files in temporary directories. It verifies both a clean package and intentional failures (broken links, missing assets, wrong canonical, malformed JSON-LD, weak CSP, duplicate or invalid sitemap entries, invalid manifest, and path traversal). It does not request external websites or modify the committed build.
 
 ## What the checks cover
 
