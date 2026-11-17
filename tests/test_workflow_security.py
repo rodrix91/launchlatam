@@ -11,7 +11,7 @@ WORKFLOW = (
 
 class QualityWorkflowContract(unittest.TestCase):
     def test_official_actions_are_pinned_to_commit_hashes(self) -> None:
-        refs = re.findall(r"(?m)^\s*-\s*uses:\s*(actions/[\w-]+)@(\S+)", WORKFLOW)
+        refs = re.findall(r"(?m)^\s*(?:-\s*)?uses:\s*(actions/[\w-]+)@([^\s#]+)", WORKFLOW)
         self.assertEqual({name for name, _ in refs}, {
             "actions/checkout",
             "actions/setup-python",
