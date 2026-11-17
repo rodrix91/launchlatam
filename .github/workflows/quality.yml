@@ -1,0 +1,44 @@
+name: Quality gates
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  offline-quality:
+    name: Offline site and worker checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check Python source syntax
+        run: python -m py_compile build.py content.py tools/og.py tools/check_site.py
+      - name: Check browser and worker JS syntax
+        run: |
+          node --check site/assets/scan.js
+          node --check worker/src/index.js
+      - name: Check committed site integrity
+        run: python tools/check_site.py
+      - name: Run worker security and behavior tests
+        working-directory: worker
+        run: npm test
