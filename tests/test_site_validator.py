@@ -124,5 +124,46 @@ class SiteValidationTests(unittest.TestCase):
         self.assert_reports("Unsafe local URL path")
 
 
+    def test_valid_document_relative_link_is_checked(self) -> None:
+        self.mutate("/", f'{BASE}/en/', "./en/?source=menu#intro")
+        self.assertEqual(site_check.check(self.root), [])
+
+    def test_valid_root_relative_project_link_is_checked(self) -> None:
+        self.mutate("/", f'{BASE}/en/', "/launchlatam/en/#intro")
+        self.assertEqual(site_check.check(self.root), [])
+
+    def test_missing_document_relative_link_is_reported(self) -> None:
+        self.mutate("/", f'{BASE}/en/', "./missing-local-target/")
+        self.assert_reports("Broken internal link")
+
+    def test_document_relative_parent_navigation_within_site_is_valid(self) -> None:
+        self.mutate("/en/", f'{BASE}/en/', "../pt/")
+        self.assertEqual(site_check.check(self.root), [])
+
+    def test_relative_parent_navigation_outside_site_is_unsafe(self) -> None:
+        self.mutate("/", f'{BASE}/en/', "../outside/")
+        self.assert_reports("Unsafe local URL path outside project")
+
+    def test_encoded_relative_parent_traversal_is_unsafe(self) -> None:
+        self.mutate("/", f'{BASE}/en/', "%2e%2e/%2e%2e/secret")
+        self.assert_reports("Unsafe local URL path")
+
+    def test_symlink_escape_does_not_validate_external_artifacts(self) -> None:
+        outside = Path(self.temp.name) / "outside.css"
+        outside.write_text("body{color:red}", encoding="utf-8")
+        style = self.root / "assets" / "site.css"
+        style.unlink()
+        try:
+            style.symlink_to(outside)
+        except (NotImplementedError, OSError):
+            self.skipTest("Symlinks unavailable on this test runner")
+        self.assert_reports("Unsafe local URL path")
+
+    def test_fragment_only_reference_does_not_resolve_as_broken_file(self) -> None:
+        self.mutate("/", f'{BASE}/en/', "#main")
+        self.assertEqual(site_check.check(self.root), [])
+
+
+
 if __name__ == "__main__":
     unittest.main()
