@@ -38,7 +38,7 @@ const MAX_POST_BYTES = 4096;
 // Reject oversized POSTs as they stream in, with a bound on decoded text too.
 async function readBoundedPostBody(request) {
   const lengthHint = request.headers.get("Content-Length");
-  if (lengthHint && /^\\d+$/.test(lengthHint) && Number(lengthHint) > MAX_POST_BYTES) {
+  if (lengthHint && /^\d+$/.test(lengthHint) && Number(lengthHint) > MAX_POST_BYTES) {
     throw new ScanError("request_too_large", 413);
   }
   if (!request.body) return "";
