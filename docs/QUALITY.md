@@ -27,6 +27,7 @@ The isolated validator regression suite creates synthetic HTML, sitemap, assets,
 - JSON-LD scripts parse as JSON; each indexed page has a Content Security Policy with the required `object-src` and `base-uri` restrictions and no unprocessed placeholder.
 - `robots.txt` points to the sitemap, and the web manifest is valid and points to this GitHub Pages project.
 - Browser scanner and Worker JavaScript parse; the Worker's existing `node --test` regression suite completes.
+- Every `url-form` exposed by the committed Pages artifact must direct visitor-submitted scan targets exclusively to the explicitly reviewed Cloudflare Worker origin. Missing, altered, duplicate, insecure or credential-bearing destinations fail the read-only artifact gate. Changing the Worker hostname requires a deliberate review and update of the approved constant, rather than a silent deployment. The synthetic regression suite verifies this rule and that the generator's default URL matches it. Ordinary forms without the scan form ID are unaffected.
 
 ## Scope and deployment safety
 
