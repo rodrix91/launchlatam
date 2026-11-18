@@ -17,13 +17,13 @@ node --check worker/src/index.js
 
 No credentials, network calls, Cloudflare account, GitHub token, or deployment commands are needed for these checks.
 
-The isolated validator regression suite creates synthetic HTML, sitemap, assets, robots and manifest files in temporary directories. It verifies both a clean package and intentional failures (broken links, missing assets, wrong canonical, malformed JSON-LD, weak CSP, duplicate or invalid sitemap entries, invalid manifest, and path traversal). It does not request external websites or modify the committed build.
+The isolated validator regression suite creates synthetic HTML, sitemap, assets, robots and manifest files in temporary directories. It verifies both a clean package and intentional failures (absolute and relative broken links, missing assets, wrong canonical, malformed JSON-LD, weak CSP, duplicate or invalid sitemap entries, invalid manifest, encoded traversal, and symlinks pointing outside the site artifact). It does not request external websites or modify the committed build.
 
 ## What the checks cover
 
 - Sitemap XML, unique entries, valid last-modified dates, and required locale/scanner pages.
 - Every sitemap URL resolves to a committed HTML file, with a non-empty title and language and a matching canonical URL.
-- Local links and assets referenced in published HTML resolve under `site/`. Off-site links are intentionally not fetched.
+- Absolute and document-relative local links, including project-root-relative links, resolve under `site/`; links that navigate outside the project root or symlink outside the artifact are rejected. Off-site links are intentionally not fetched.
 - JSON-LD scripts parse as JSON; each indexed page has a Content Security Policy with the required `object-src` and `base-uri` restrictions and no unprocessed placeholder.
 - `robots.txt` points to the sitemap, and the web manifest is valid and points to this GitHub Pages project.
 - Browser scanner and Worker JavaScript parse; the Worker's existing `node --test` regression suite completes.
