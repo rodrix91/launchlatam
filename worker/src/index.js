@@ -105,8 +105,10 @@ export async function handle(request, env) {
       return json({ ok: false, error: "invalid_url" }, 400, okOrigin);
     }
   }
-  if (String(p.consent) !== "1") return json({ ok: false, error: "consent_required" }, 400, okOrigin);
-  const t = checkTarget(String(p.url || ""));
+  // JSON arrays and objects are not valid consent evidence; coercing [1]
+  // to "1" would incorrectly authorize a scan, and custom coercion can throw.
+  if (p.consent !== "1" && p.consent !== 1) return json({ ok: false, error: "consent_required" }, 400, okOrigin);
+  const t = checkTarget(typeof p.url === "string" ? p.url : "");
   if (!t.ok) return json({ ok: false, error: t.reason }, t.reason === "blocked_target" ? 403 : 400, okOrigin);
 
   const ip = ipKey(request.headers.get("CF-Connecting-IP") || "unknown");
