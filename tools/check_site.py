@@ -14,6 +14,10 @@ from urllib.parse import unquote, urljoin, urlsplit
 from xml.etree import ElementTree
 
 BASE = "https://rodrix91.github.io/launchlatam"
+# The URL scan collects a visitor-supplied target and sends it to this Worker.
+# Pin its approved destination in read-only artifact CI to prevent silent
+# redirection to another operator if HTML is accidentally changed.
+APPROVED_URLSCAN_WORKER = "https://launchlatam-urlscan.rodrixlabs-launchlatam-cloudflare.workers.dev"
 SITEMAP_NS = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
 
 
@@ -26,6 +30,7 @@ class PageParser(HTMLParser):
         self.canonical: list[str] = []
         self.csp: list[str] = []
         self.local_refs: list[str] = []
+        self.urlscan_workers: list[str] = []
         self.jsonld: list[str] = []
         self._json_chunks: list[str] | None = None
 
@@ -37,6 +42,8 @@ class PageParser(HTMLParser):
             self._in_title = True
         elif tag == "meta" and (a.get("http-equiv") or "").lower() == "content-security-policy":
             self.csp.append(a.get("content") or "")
+        elif tag == "form" and a.get("id") == "url-form":
+            self.urlscan_workers.append(a.get("data-worker") or "")
         elif tag == "link":
             rel = set((a.get("rel") or "").lower().split())
             if "canonical" in rel:
@@ -167,6 +174,12 @@ def check(root: Path) -> list[str]:
         require(bool(parser.title.strip()), f"Missing title: {loc}")
         require(bool(parser.lang.strip()), f"Missing html lang: {loc}")
         require(parser.canonical == [loc], f"Canonical mismatch: {loc} -> {parser.canonical}")
+        # Missing, duplicated or replaced Worker origins are never silently
+        # accepted on a page where the visitor can submit a scan target.
+        require(len(parser.urlscan_workers) <= 1, f"Duplicate URL scan form: {loc}")
+        for worker in parser.urlscan_workers:
+            require(worker == APPROVED_URLSCAN_WORKER,
+                    f"Unapproved URL scan Worker destination: {loc}")
         require(len(parser.csp) == 1, f"Expected one Content-Security-Policy: {loc}")
         for policy in parser.csp:
             require("object-src 'none'" in policy, f"CSP missing object-src restriction: {loc}")
