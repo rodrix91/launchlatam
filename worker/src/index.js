@@ -32,6 +32,36 @@ export default {
 
 class ScanError extends Error { constructor(code, status = 502) { super(code); this.code = code; this.status = status; } }
 
+const MAX_POST_BYTES = 4096;
+
+// Request.text() buffers the entire caller-controlled body before slicing it.
+// Reject oversized POSTs as they stream in, with a bound on decoded text too.
+async function readBoundedPostBody(request) {
+  const lengthHint = request.headers.get("Content-Length");
+  if (lengthHint && /^\d+$/.test(lengthHint) && Number(lengthHint) > MAX_POST_BYTES) {
+    throw new ScanError("request_too_large", 413);
+  }
+  if (!request.body) return "";
+  const reader = request.body.getReader();
+  const decoder = new TextDecoder("utf-8", { fatal: true });
+  const fragments = [];
+  let used = 0;
+  try {
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) return fragments.join("") + decoder.decode();
+      used += value.byteLength;
+      if (used > MAX_POST_BYTES) throw new ScanError("request_too_large", 413);
+      fragments.push(decoder.decode(value, { stream: true }));
+    }
+  } catch (error) {
+    try { await reader.cancel(); } catch {}
+    throw error;
+  } finally {
+    reader.releaseLock();
+  }
+}
+
 function allowedOrigins(env) { return String(env.ALLOWED_ORIGINS || DEFAULT_ORIGINS).split(",").map(s => s.trim()).filter(Boolean); }
 
 function corsHeaders(origin) {
@@ -53,11 +83,14 @@ export async function handle(request, env) {
   const p = Object.fromEntries(url.searchParams);
   if (request.method === "POST") {
     const ct = request.headers.get("Content-Type") || "";
-    const body = (await request.text()).slice(0, 4096);
     try {
+      const body = await readBoundedPostBody(request);
       if (ct.includes("application/json")) Object.assign(p, JSON.parse(body || "{}"));
       else Object.assign(p, Object.fromEntries(new URLSearchParams(body)));
-    } catch { return json({ ok: false, error: "invalid_url" }, 400, okOrigin); }
+    } catch (error) {
+      if (error instanceof ScanError) return json({ ok: false, error: error.code }, error.status, okOrigin);
+      return json({ ok: false, error: "invalid_url" }, 400, okOrigin);
+    }
   }
   if (String(p.consent) !== "1") return json({ ok: false, error: "consent_required" }, 400, okOrigin);
   const t = checkTarget(String(p.url || ""));
