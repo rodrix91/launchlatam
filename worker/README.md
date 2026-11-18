@@ -11,7 +11,7 @@ updated Terms + Privacy (proposals in `/workspace/quiposa/legal-proposals/urlsca
 - `Origin` must be in `ALLOWED_ORIGINS` (default `https://rodrix91.github.io`); otherwise 403. CORS echoes only that origin.
 - 200 → `{ok:true, target:{host,https}, scanned:{html:1, js, kb, truncated}, score, findings:[{id, sev, ev?, where?}]}`
 - Errors → `{ok:false, error}`: `consent_required`/`invalid_url` (400), `blocked_target`/`origin_not_allowed` (403),
-  `rate_limited` (429 + `Retry-After`), `unreachable`/`unresolvable`/`timeout`/`too_many_redirects` (502).
+  `request_too_large` (413, POST body exceeds 4,096 UTF-8 bytes), `rate_limited` (429 + `Retry-After`), `unreachable`/`unresolvable`/`timeout`/`too_many_redirects` (502).
 - `sev` ∈ critical, high, medium, low, info, ok. `ev` is **masked** (first 6 + last 4 chars; shorter values show at most 4).
   `where` is only the path of the public file where it was seen. Copy (ES/PT/EN) lives in `site/assets/scan.js` (`FU`).
 
@@ -44,6 +44,9 @@ Nothing is stored and nothing is logged: page and bundle text live only in memor
   (`cloudflare-dns.com/dns-query`, A + AAAA) and rejects private/reserved/link-local/CGNAT/ULA/mapped answers (and CNAMEs to blocked
   names). This is a time-of-check test (DNS rebinding can still change the answer), so we **also rely on Cloudflare's own
   block of Worker subrequests to private/internal address space**. `DOH_CHECK = "0"` disables it (not recommended).
+
+## Request body safety
+POST JSON and URL-encoded form inputs are read incrementally, with an absolute **4,096-byte** limit counted on incoming UTF-8 bytes. An oversized body returns HTTP **413** and is rejected before target resolution, rate limiting or outbound scanning. A `Content-Length` value exceeding the limit is rejected immediately, but streaming checks remain mandatory even when that header is absent or incorrect. Exactly 4,096 bytes remain accepted, so existing legitimate clients retain the prior boundary. No full-body logging, persistence or third-party service is involved. Synthetic regression tests cover the boundary, multibyte text, chunked POSTs, JSON and valid form requests.
 
 ## Abuse limits
 Per isolate fixed window: 10 scans / 10 min per client IP (`CF-Connecting-IP`) and 6 / 10 min per target registrable domain
