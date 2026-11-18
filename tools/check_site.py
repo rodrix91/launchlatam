@@ -73,6 +73,18 @@ def resolve_local(root: Path, url: str, source: str | None = None) -> Path | Non
     except ValueError as exc:
         raise ValueError(f"Unsafe local URL path: {url}") from exc
 
+    # Executable or local-filesystem URL schemes are never valid in a
+    # published site's anchors/assets, even when they look like external refs.
+    if parsed.scheme in {"javascript", "vbscript", "file"}:
+        raise ValueError(f"Unsafe active URL scheme: {parsed.scheme}")
+
+    # Protocol-relative URLs use the source document's HTTPS origin. A
+    # same-host reference is internal and must not evade missing-file checks.
+    if source is not None and not parsed.scheme and parsed.netloc:
+        if parsed.netloc != origin.netloc:
+            return None
+        parsed = urlsplit(f"{origin.scheme}:{url}")
+
     if source is not None and not parsed.scheme and not parsed.netloc:
         # An in-page anchor does not refer to a different local file.
         if not parsed.path and not parsed.query:

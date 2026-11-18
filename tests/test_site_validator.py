@@ -165,5 +165,44 @@ class SiteValidationTests(unittest.TestCase):
 
 
 
+    def test_protocol_relative_internal_link_is_verified(self) -> None:
+        self.mutate("/", f'<a href="{BASE}/en/"',
+                    '<a href="//rodrix91.github.io/launchlatam/en/"')
+        self.assertEqual(site_check.check(self.root), [])
+
+    def test_missing_protocol_relative_internal_link_is_reported(self) -> None:
+        self.mutate("/", f'<a href="{BASE}/en/"',
+                    '<a href="//rodrix91.github.io/launchlatam/absent/"')
+        self.assert_reports("Broken internal link")
+
+    def test_protocol_relative_external_link_is_ignored_without_network(self) -> None:
+        self.mutate("/", f'<a href="{BASE}/en/"',
+                    '<a href="//external.example.test/absent/"')
+        self.assertEqual(site_check.check(self.root), [])
+
+    def test_scriptable_anchor_scheme_is_rejected(self) -> None:
+        self.mutate("/", f'<a href="{BASE}/en/"',
+                    '<a href="javascript:alert(1)"')
+        self.assert_reports("Unsafe active URL scheme: javascript")
+
+    def test_html_character_reference_cannot_hide_script_scheme(self) -> None:
+        self.mutate("/", f'<a href="{BASE}/en/"',
+                    '<a href="java&#115;cript:alert(1)"')
+        self.assert_reports("Unsafe active URL scheme: javascript")
+
+    def test_legacy_script_and_filesystem_schemes_are_rejected(self) -> None:
+        for url, scheme in (("VBScript:msgbox(1)", "vbscript"),
+                            ("file:///etc/passwd", "file")):
+            with self.subTest(scheme=scheme):
+                self.mutate("/", f'<a href="{BASE}/en/"', f'<a href="{url}"')
+                self.assert_reports(f"Unsafe active URL scheme: {scheme}")
+                self.mutate("/", f'<a href="{url}"', f'<a href="{BASE}/en/"')
+
+    def test_normal_mailto_links_remain_allowed(self) -> None:
+        self.mutate("/", f'<a href="{BASE}/en/"',
+                    '<a href="mailto:contact@example.test"')
+        self.assertEqual(site_check.check(self.root), [])
+
+
 if __name__ == "__main__":
     unittest.main()

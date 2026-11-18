@@ -23,7 +23,7 @@ The isolated validator regression suite creates synthetic HTML, sitemap, assets,
 
 - Sitemap XML, unique entries, valid last-modified dates, and required locale/scanner pages.
 - Every sitemap URL resolves to a committed HTML file, with a non-empty title and language and a matching canonical URL.
-- Absolute and document-relative local links, including project-root-relative links, resolve under `site/`; links that navigate outside the project root or symlink outside the artifact are rejected. Off-site links are intentionally not fetched.
+- Absolute, document-relative, project-root-relative and protocol-relative same-host links resolve under `site/`; links that navigate outside the project root or symlink outside the artifact are rejected. External sites are never fetched. The validator rejects `javascript:`, `vbscript:` and `file:` links even when HTML character references are used to disguise their schemes; ordinary `mailto:` references remain allowed.
 - JSON-LD scripts parse as JSON; each indexed page has a Content Security Policy with the required `object-src` and `base-uri` restrictions and no unprocessed placeholder.
 - `robots.txt` points to the sitemap, and the web manifest is valid and points to this GitHub Pages project.
 - Browser scanner and Worker JavaScript parse; the Worker's existing `node --test` regression suite completes.
