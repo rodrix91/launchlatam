@@ -204,5 +204,50 @@ class SiteValidationTests(unittest.TestCase):
         self.assertEqual(site_check.check(self.root), [])
 
 
+    def add_urlscan_form(self, path: str = "/", worker: str | None = None) -> None:
+        worker = site_check.APPROVED_URLSCAN_WORKER if worker is None else worker
+        self.mutate(path, "</body>", f'<form id="url-form" data-worker="{worker}"></form></body>')
+
+    def test_approved_worker_origin_is_accepted(self) -> None:
+        self.add_urlscan_form()
+        self.assertEqual(site_check.check(self.root), [])
+
+    def test_unapproved_worker_origin_is_rejected(self) -> None:
+        self.add_urlscan_form(worker="https://attacker.example.test")
+        self.assert_reports("Unapproved URL scan Worker destination")
+
+    def test_insecure_or_credentialed_worker_origin_is_rejected(self) -> None:
+        for worker in (
+            "http://launchlatam-urlscan.rodrixlabs-launchlatam-cloudflare.workers.dev",
+            "https://user:pass@launchlatam-urlscan.rodrixlabs-launchlatam-cloudflare.workers.dev",
+            "https://launchlatam-urlscan.rodrixlabs-launchlatam-cloudflare.workers.dev:8443",
+            "https://launchlatam-urlscan.rodrixlabs-launchlatam-cloudflare.workers.dev/scan",
+        ):
+            with self.subTest(worker=worker):
+                self.add_urlscan_form(worker=worker)
+                self.assert_reports("Unapproved URL scan Worker destination")
+                self.mutate("/", f'<form id="url-form" data-worker="{worker}"></form>',
+                            "")
+
+    def test_missing_worker_data_is_not_silently_allowed(self) -> None:
+        self.mutate("/", "</body>", '<form id="url-form"></form></body>')
+        self.assert_reports("Unapproved URL scan Worker destination")
+
+    def test_duplicate_urlscan_form_is_rejected(self) -> None:
+        self.add_urlscan_form()
+        self.mutate("/", "</body>", f'<form id="url-form" data-worker="{site_check.APPROVED_URLSCAN_WORKER}"></form></body>')
+        self.assert_reports("Duplicate URL scan form")
+
+    def test_non_scanning_forms_do_not_require_worker_destination(self) -> None:
+        self.mutate("/", "</body>", '<form id="self-check"></form></body>')
+        self.assertEqual(site_check.check(self.root), [])
+
+    def test_build_default_worker_matches_approved_review_destination(self) -> None:
+        source = (MODULE_PATH.parents[1] / "build.py").read_text(encoding="utf-8")
+        needle = ('URLSCAN_WORKER = os.environ.get("URLSCAN_WORKER", "'
+                  + site_check.APPROVED_URLSCAN_WORKER + '")')
+        self.assertIn(needle, source)
+
+
 if __name__ == "__main__":
     unittest.main()
