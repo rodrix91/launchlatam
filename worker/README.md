@@ -7,13 +7,15 @@ updated Terms + Privacy (proposals in `/workspace/quiposa/legal-proposals/urlsca
 ## API
 `GET /scan?url=<app url>&consent=1` (also `POST /scan` with JSON or form body; the UI uses GET = no CORS preflight).
 
-- `consent=1` is mandatory (UI checkbox: "I own this app or have permission").
+- `consent=1` is mandatory (UI checkbox: "I own this app or have permission"). The Worker checks only **explicit, own** `url` and `consent` request fields. JSON arrays/objects cannot masquerade as scalar consent values, and inherited `__proto__` fields never grant consent or provide a scan URL. GET, JSON POST and URL-encoded POST retain their supported explicit-field behavior.
 - `Origin` must be in `ALLOWED_ORIGINS` (default `https://rodrix91.github.io`); otherwise 403. CORS echoes only that origin.
 - 200 → `{ok:true, target:{host,https}, scanned:{html:1, js, kb, truncated}, score, findings:[{id, sev, ev?, where?}]}`
 - Errors → `{ok:false, error}`: `consent_required`/`invalid_url` (400), `blocked_target`/`origin_not_allowed` (403),
   `request_too_large` (413, POST body exceeds 4,096 UTF-8 bytes), `rate_limited` (429 + `Retry-After`), `unreachable`/`unresolvable`/`timeout`/`too_many_redirects` (502).
 - `sev` ∈ critical, high, medium, low, info, ok. `ev` is **masked** (first 6 + last 4 chars; shorter values show at most 4).
   `where` is only the path of the public file where it was seen. Copy (ES/PT/EN) lives in `site/assets/scan.js` (`FU`).
+
+**Consent integrity:** request parameters are held in a null-prototype object and copied only from the two explicitly supported keys. Do not restore `Object.assign(p, JSON.parse(body))` with a normal plain object: an attacker-supplied `__proto__` can create inherited `consent` and `url` properties. Offline tests exercise those cases without making requests to visitors' applications.
 
 ## What it does (and doesn't)
 Only `GET`, no cookies, no auth headers, `User-Agent: LaunchLatamScan/1.0 (+https://rodrix91.github.io/launchlatam/)`.
