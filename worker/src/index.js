@@ -80,20 +80,35 @@ export async function handle(request, env) {
   if (request.method !== "GET" && request.method !== "POST") return json({ ok: false, error: "method_not_allowed" }, 405, okOrigin);
   if (!okOrigin) return json({ ok: false, error: "origin_not_allowed" }, 403, null);
 
-  const p = Object.fromEntries(url.searchParams);
+  // Only explicit, own fields can authorize a scan. A plain object merged
+  // with Object.assign(JSON.parse(...)) could inherit "consent" or "url" from
+  // a caller-supplied "__proto__" object, bypassing the consent gate.
+  const p = Object.create(null);
+  for (const [key, value] of url.searchParams) {
+    if (key === "url" || key === "consent") p[key] = value;
+  }
   if (request.method === "POST") {
     const ct = request.headers.get("Content-Type") || "";
     try {
       const body = await readBoundedPostBody(request);
-      if (ct.includes("application/json")) Object.assign(p, JSON.parse(body || "{}"));
-      else Object.assign(p, Object.fromEntries(new URLSearchParams(body)));
+      const supplied = ct.includes("application/json")
+        ? JSON.parse(body || "{}")
+        : Object.fromEntries(new URLSearchParams(body));
+      if (!supplied || typeof supplied !== "object" || Array.isArray(supplied)) {
+        return json({ ok: false, error: "invalid_url" }, 400, okOrigin);
+      }
+      for (const key of ["url", "consent"]) {
+        if (Object.hasOwn(supplied, key)) p[key] = supplied[key];
+      }
     } catch (error) {
       if (error instanceof ScanError) return json({ ok: false, error: error.code }, error.status, okOrigin);
       return json({ ok: false, error: "invalid_url" }, 400, okOrigin);
     }
   }
-  if (String(p.consent) !== "1") return json({ ok: false, error: "consent_required" }, 400, okOrigin);
-  const t = checkTarget(String(p.url || ""));
+  // JSON arrays and objects are not valid consent evidence; coercing [1]
+  // to "1" would incorrectly authorize a scan, and custom coercion can throw.
+  if (p.consent !== "1" && p.consent !== 1) return json({ ok: false, error: "consent_required" }, 400, okOrigin);
+  const t = checkTarget(typeof p.url === "string" ? p.url : "");
   if (!t.ok) return json({ ok: false, error: t.reason }, t.reason === "blocked_target" ? 403 : 400, okOrigin);
 
   const ip = ipKey(request.headers.get("CF-Connecting-IP") || "unknown");
