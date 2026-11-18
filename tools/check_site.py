@@ -64,22 +64,42 @@ class PageParser(HTMLParser):
             self._json_chunks = None
 
 
-def resolve_local(root: Path, url: str) -> Path | None:
-    """Map URLs of this Pages project to files, never leaving the site folder."""
-    parsed = urlsplit(url)
+def resolve_local(root: Path, url: str, source: str | None = None) -> Path | None:
+    """Resolve project URLs, including document-relative links, inside root only."""
     origin = urlsplit(BASE)
+    prefix = origin.path.rstrip("/") + "/"
+    try:
+        parsed = urlsplit(url)
+    except ValueError as exc:
+        raise ValueError(f"Unsafe local URL path: {url}") from exc
+
+    if source is not None and not parsed.scheme and not parsed.netloc:
+        # An in-page anchor does not refer to a different local file.
+        if not parsed.path and not parsed.query:
+            return None
+        parsed = urlsplit(urljoin(source, url))
+        if parsed.netloc == origin.netloc and not parsed.path.startswith(prefix):
+            raise ValueError(f"Unsafe local URL path outside project: {url}")
+
     if parsed.scheme not in {"http", "https"} or parsed.netloc != origin.netloc:
         return None
-    prefix = origin.path.rstrip("/") + "/"
     if not parsed.path.startswith(prefix):
         return None
     relative = unquote(parsed.path[len(prefix):])
     parts = Path(relative).parts
-    if ".." in parts or "\\" in relative:
+    if ".." in parts or "\\" in relative or relative.startswith("/") or "\x00" in relative:
         raise ValueError(f"Unsafe local URL path: {url}")
+
     target = root.joinpath(*parts)
     if parsed.path.endswith("/") or target.is_dir():
         target = target / "index.html"
+    # A symlink inside a build could redirect a nominally local link outside
+    # the artifact. Reject traversal even when target.is_file() is True.
+    try:
+        if not target.resolve(strict=False).is_relative_to(root.resolve(strict=False)):
+            raise ValueError(f"Unsafe local URL path: {url}")
+    except (OSError, RuntimeError) as exc:
+        raise ValueError(f"Unsafe local URL path: {url}") from exc
     return target
 
 
@@ -147,7 +167,7 @@ def check(root: Path) -> list[str]:
                 failures.append(f"Invalid JSON-LD script {i} at {loc}: {exc}")
         for ref in set(parser.local_refs):
             try:
-                target = resolve_local(root, ref)
+                target = resolve_local(root, ref, source=loc)
             except ValueError as exc:
                 failures.append(str(exc))
                 continue
