@@ -137,7 +137,7 @@ class SiteValidationTests(unittest.TestCase):
         self.assert_reports("Broken internal link")
 
     def test_document_relative_parent_navigation_within_site_is_valid(self) -> None:
-        self.mutate("/en/", f'{BASE}/en/', "../pt/")
+        self.mutate("/en/", f'<a href="{BASE}/en/"', '<a href="../pt/"')
         self.assertEqual(site_check.check(self.root), [])
 
     def test_relative_parent_navigation_outside_site_is_unsafe(self) -> None:
