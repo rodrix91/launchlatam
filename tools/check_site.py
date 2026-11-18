@@ -10,7 +10,7 @@ import sys
 from datetime import date
 from html.parser import HTMLParser
 from pathlib import Path
-from urllib.parse import unquote, urlsplit
+from urllib.parse import unquote, urljoin, urlsplit
 from xml.etree import ElementTree
 
 BASE = "https://rodrix91.github.io/launchlatam"
