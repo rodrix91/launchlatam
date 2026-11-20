@@ -53,6 +53,7 @@ const MOCK_URL = { ok: true, target: { host: 'qa-app.example' }, scanned: { js: 
       await pg.waitForFunction(() => !document.getElementById('scan-out').hidden && document.querySelector('#scan-out [data-share]'), null, { timeout: 60000 }).catch(() => {});
       const bR = pg.locator('[data-share=report]'), bB = pg.locator('[data-share=badge]');
       ok(lang, `${mode}: buttons visible after result`, await bR.isVisible() && await bB.isVisible() && (await bR.textContent()) === c.bR && (await bB.textContent()) === c.bB, `${await bR.textContent().catch(() => '')} | ${await bB.textContent().catch(() => '')}`);
+      await pg.waitForFunction(() => { const i = document.querySelector('#scan-out .share img'); return i && i.complete && i.naturalWidth > 0; }, null, { timeout: 10000 }).catch(() => {});
       const img = await pg.$eval('#scan-out .share img', i => ({ w: i.naturalWidth, src: i.src, alt: i.alt })).catch(() => ({ w: 0 }));
       ok(lang, `${mode}: badge preview renders`, img.w > 0 && img.src === `${BASE}/assets/badge-${lang}.svg` && img.alt === c.badge, JSON.stringify(img));
       await bR.scrollIntoViewIfNeeded(); await bR.click(); await pg.waitForTimeout(300);
