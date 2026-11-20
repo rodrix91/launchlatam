@@ -8,7 +8,7 @@ Static site for LaunchLatam — security, local payments and compliance for AI-b
 - Checkout links point to Whop plans (see `W` in build.py).
 - Deploy: `./deploy.sh` (builds and force-pushes site/ to gh-pages; Pages serves that branch).
 - Local preview: `BASE=http://localhost:8099/launchlatam OUT=/tmp/srv/launchlatam python3 build.py` then serve `/tmp/srv`.
-- Tests: `tools/shots.js` (screenshots + overflow check), `tools/scantest.js` (scanner e2e).
+- Tests: `tools/shots.js` (screenshots + overflow check), `tools/scantest.js` (scanner e2e), `tools/qa_share.js local|live` (T-111 shareable report + README badge; GoatCounter stubbed).
 - Python 3.12+ required (f-string syntax).
 
 ## Blog (ES/PT/EN)

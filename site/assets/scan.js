@@ -71,7 +71,7 @@ async function scan(repo,out,status){
  var tree=await gh("/repos/"+repo.o+"/"+repo.r+"/git/trees/"+encodeURIComponent(br)+"?recursive=1");
  var paths=(tree.tree||[]).filter(function(x){return x.type==="blob"}).map(function(x){return x.path}).filter(function(p){return !/(^|\/)(node_modules|dist|build|\.next|vendor)\//.test(p)});
  var f=[];
- paths.filter(function(p){return /(^|\/)\.env(\.[\w-]+)?$/.test(p)&&!/example|sample|template/i.test(p)}).forEach(function(p){f.push(["crit",t("env")+p])});
+ paths.filter(function(p){return /(^|\/)\.env(\.[\w-]+)?$/.test(p)&&!/example|sample|template/i.test(p)}).forEach(function(p){f.push(["crit",t("env")+p,"","env"])});
  var code=paths.filter(function(p){return /\.(t|j)sx?$|\.mjs$|\.vue$|\.svelte$|\.py$|\.env(\.[\w-]+)?$|\.toml$|\.ya?ml$|\.json$/.test(p)&&!/lock|\.d\.ts$|test|spec|example/i.test(p)});
  code.sort(function(a,b){var s=function(p){return /supabase|api|server|lib|config|env|integrations|functions/i.test(p)?0:1};return s(a)-s(b)});
  code=code.slice(0,60);
@@ -91,19 +91,19 @@ async function scan(repo,out,status){
   });
   status.textContent=T.run+"… "+n+"/"+all.length;
  }
- if(srv)f.push(["crit",t("srv")]);
- Object.keys(secrets).forEach(function(k){f.push([k==="Stripe test"?"high":"crit",t("sec")+k+"): "+secrets[k].slice(0,3).join(", ")])});
+ if(srv)f.push(["crit",t("srv"),"","srv"]);
+ Object.keys(secrets).forEach(function(k){f.push([k==="Stripe test"?"high":"crit",t("sec")+k+"): "+secrets[k].slice(0,3).join(", "),"","sec"])});
  noRls=noRls.filter(function(x){return !new RegExp("alter\\s+table\\s+(public\\.)?\"?"+x+"\"?\\s+enable\\s+row\\s+level\\s+security","i").test(joined)});
- if(noRls.length)f.push(["crit",t("rls")+Array.from(new Set(noRls)).slice(0,8).join(", ")]);
- if(openPol.length)f.push(["high",t("tru")+openPol.slice(0,3).join(", ")]);
- if(debug.length)f.push(["med",t("dbg")+debug.slice(0,3).join(", ")]);
+ if(noRls.length)f.push(["crit",t("rls")+Array.from(new Set(noRls)).slice(0,8).join(", "),"","rls"]);
+ if(openPol.length)f.push(["high",t("tru")+openPol.slice(0,3).join(", "),"","tru"]);
+ if(debug.length)f.push(["med",t("dbg")+debug.slice(0,3).join(", "),"","dbg"]);
  var hasHdr=paths.some(function(p){return /(^|\/)(_headers|vercel\.json|netlify\.toml)$/.test(p)})&&/content-security-policy/i.test(joined);
- if(!hasHdr)f.push(["med",t("hdr")]);
+ if(!hasHdr)f.push(["med",t("hdr"),"","hdr"]);
  var mp=/mercadopago|mercado-pago|mercado_pago|\bpix\b/i.test(joined),st=/stripe/i.test(joined),pd=/paddle|lemonsqueezy/i.test(joined);
- if(mp)f.push(["ok",t("payOK")]);else if(st)f.push(["high",t("payS")]);else if(!pd)f.push(["med",t("pay0")]);
+ if(mp)f.push(["ok",t("payOK"),"","payOK"]);else if(st)f.push(["high",t("payS"),"","payS"]);else if(!pd)f.push(["med",t("pay0"),"","pay0"]);
  var leg=paths.some(function(p){return /privac|terms|termin|legal/i.test(p)});
- f.push(leg?["ok",t("legOK")]:["med",t("leg")]);
- return {f:f,n:n,repo:repo.o+"/"+repo.r};
+ f.push(leg?["ok",t("legOK"),"","legOK"]:["med",t("leg"),"","leg"]);
+ return {f:f,n:n,repo:repo.o+"/"+repo.r,mode:"repo"};
 }
 // T-101: cookie-less GoatCounter events (no-op if analytics disabled). Only coarse buckets, never repo names/URLs/findings.
 function gcEvent(name){try{if(window.goatcounter&&window.goatcounter.count)window.goatcounter.count({path:name,title:name,event:true})}catch(e){}}
@@ -128,15 +128,86 @@ function render(res,out,o){o=o||{};
  var h='<h3 tabindex="-1" id="scan-title">'+T.title+": "+esc(res.repo)+'</h3><p class="mono">'+T.score+": "+sc+"/100 · "+res.n+" "+(o.files||T.files)+"</p>";
  var probs=res.f.filter(function(x){return x[0]!=="ok"&&x[0]!=="info"});
  res.f.forEach(function(x){h+='<div class="finding"><span class="pill '+cls[x[0]]+'">'+lbl[x[0]]+"</span> "+esc(x[1])+(x[2]?' <code>'+esc(x[2])+'</code>':'')+"</div>"});
- h+='<p class="muted" style="color:#CDB59B">'+(o.note||T.note)+'</p>'+ctas(probs.length>0,true,probs.some(function(x){return x[0]==="crit"||x[0]==="high"})?"urgent":"recommended",o.pref);
+ h+='<p class="muted" style="color:#CDB59B">'+(o.note||T.note)+'</p>'+ctas(probs.length>0,true,probs.some(function(x){return x[0]==="crit"||x[0]==="high"})?"urgent":"recommended",o.pref)+shareBox();
+ lastRes={f:res.f,n:res.n,target:res.repo,mode:res.mode||"repo",sc:sc,files:o.files||T.files};
  out.innerHTML=h;out.hidden=false;document.getElementById("scan-title").focus();
  return sc;
+}
+// T-111 shareable report + README badge. 100% client-side: builds Markdown from the result already on screen,
+// copies it to the clipboard and stores nothing. Evidence stays masked; the badge never shows a score.
+var SITE="https://rodrix91.github.io/launchlatam";
+var SCANP={es:"/escaneo/",pt:"/pt/",en:"/en/"},SCANH={es:"",pt:"#escaneo",en:"#escaneo"};
+var R={
+es:{h:"Informe de LaunchLatam",target:"Objetivo",mRepo:"repo público de GitHub",mUrl:"URL pública de la app",mode:"Modo",date:"Fecha",fix:"Cómo corregirlo",ev:"Evidencia (mascarada)",none:"No encontramos problemas en lo que revisa el escaneo.",info:"Información",ok:"Sin problemas detectados",disc:"Chequeo automático, no auditoría.",dRepo:"Revisa solo el código de un repo público de GitHub (no la app en vivo ni la base de datos), puede tener falsos positivos o pasar por alto fallas y no es una garantía de seguridad.",dUrl:"Revisa solo lo que cualquier visitante ve de la app (la página, el JavaScript público y las cabeceras HTTP), puede tener falsos positivos o pasar por alto fallas y no es una garantía de seguridad.",fp:"¿Querés ayuda para corregirlo? Fix Pack, USD 29, pago único: corrección de hasta 5 fallas críticas del escaneo con un pull request revisable.",gen:"Generado con el escaneo gratis de LaunchLatam",bR:"Copiar informe",bB:"Copiar insignia",sh:"Compartir el resultado",shp:"El informe se copia en Markdown, con las claves mascaradas. La insignia para tu README muestra solo «Revisado con LaunchLatam», sin puntaje.",okR:"Informe copiado. Pegalo en un issue, un README o un mensaje.",okB:"Insignia copiada. Pegala en tu README.",fail:"No pudimos copiar automáticamente. Seleccioná el texto de abajo y copialo.",badge:"Revisado con LaunchLatam"},
+pt:{h:"Relatório do LaunchLatam",target:"Alvo",mRepo:"repositório público do GitHub",mUrl:"URL pública do app",mode:"Modo",date:"Data",fix:"Como corrigir",ev:"Evidência (mascarada)",none:"Não encontramos problemas no que o scan verifica.",info:"Informação",ok:"Sem problemas detectados",disc:"Verificação automática, não auditoria.",dRepo:"Verifica apenas o código de um repositório público do GitHub (não o app no ar nem o banco de dados), pode ter falsos positivos ou deixar passar falhas e não é uma garantia de segurança.",dUrl:"Verifica apenas o que qualquer visitante vê do app (a página, o JavaScript público e os cabeçalhos HTTP), pode ter falsos positivos ou deixar passar falhas e não é uma garantia de segurança.",fp:"Quer ajuda para corrigir? Fix Pack, US$ 29, pagamento único: correção de até 5 falhas críticas do scan com um pull request revisável.",gen:"Gerado com o scan grátis do LaunchLatam",bR:"Copiar relatório",bB:"Copiar selo",sh:"Compartilhar o resultado",shp:"O relatório é copiado em Markdown, com as chaves mascaradas. O selo para o seu README mostra apenas “Revisado com LaunchLatam”, sem pontuação.",okR:"Relatório copiado. Cole em uma issue, um README ou uma mensagem.",okB:"Selo copiado. Cole no seu README.",fail:"Não conseguimos copiar automaticamente. Selecione o texto abaixo e copie.",badge:"Revisado com LaunchLatam"},
+en:{h:"LaunchLatam report",target:"Target",mRepo:"public GitHub repo",mUrl:"public app URL",mode:"Mode",date:"Date",fix:"How to fix",ev:"Evidence (masked)",none:"We found no issues in what the scan checks.",info:"Info",ok:"No issues detected",disc:"Automated check, not an audit.",dRepo:"It only reviews the code of a public GitHub repo (not the live app or the database), may produce false positives or miss issues, and is not a security guarantee.",dUrl:"It only reviews what any visitor sees of the app (the page, public JavaScript and HTTP headers), may produce false positives or miss issues, and is not a security guarantee.",fp:"Want help fixing it? Fix Pack, USD 29, one-time: we fix up to 5 critical scan findings in a reviewable pull request.",gen:"Generated with the LaunchLatam free scan",bR:"Copy report",bB:"Copy badge",sh:"Share the result",shp:"The report is copied as Markdown, with keys masked. The README badge only says “Reviewed with LaunchLatam”, with no score.",okR:"Report copied. Paste it into an issue, a README or a message.",okB:"Badge copied. Paste it into your README.",fail:"We couldn't copy automatically. Select the text below and copy it.",badge:"Reviewed with LaunchLatam"}
+}[L]||{};
+var SECRET_FIX={es:"Rotá o revocá la clave ya en el panel del proveedor, sacala del código del frontend y usala solo desde el servidor (backend o Edge Function).",pt:"Gere uma nova chave ou revogue a atual já no painel do provedor, tire-a do código do frontend e use-a só no servidor (backend ou Edge Function).",en:"Rotate or revoke the key now in the provider's dashboard, remove it from frontend code and use it only server-side (backend or Edge Function)."};
+var HDR_FIX={es:"Configurá una Content-Security-Policy y las demás cabeceras de seguridad en tu hosting (vercel.json, netlify.toml o _headers).",pt:"Configure uma Content-Security-Policy e os demais cabeçalhos de segurança na sua hospedagem (vercel.json, netlify.toml ou _headers).",en:"Set a Content-Security-Policy and the other security headers in your hosting config (vercel.json, netlify.toml or _headers)."};
+var PAY_FIX={es:"Si vas a cobrar en LatAm, sumá un método local (Mercado Pago, Pix u OXXO).",pt:"Se for cobrar no Brasil ou na América Latina, adicione um meio local (Pix ou Mercado Pago).",en:"If you will charge in LatAm, add a local method (Mercado Pago, Pix or OXXO)."};
+var LEG_FIX={es:"Publicá una política de privacidad y términos de uso y enlazalos desde la app.",pt:"Publique uma política de privacidade e termos de uso e coloque links para eles no app.",en:"Publish a privacy policy and terms of use and link them from the app."};
+var RLS_FIX={es:"Activá Row Level Security en cada tabla (alter table … enable row level security) y creá políticas filtradas por auth.uid().",pt:"Ative Row Level Security em cada tabela (alter table … enable row level security) e crie políticas filtradas por auth.uid().",en:"Enable Row Level Security on every table (alter table … enable row level security) and add policies filtered by auth.uid()."};
+var FX={
+env:{es:"Borrá el archivo del repo, agregalo a .gitignore y rotá todas las claves que contenía: siguen en el historial de git.",pt:"Remova o arquivo do repositório, adicione-o ao .gitignore e gere novas chaves para tudo o que ele continha: elas continuam no histórico do git.",en:"Delete the file from the repo, add it to .gitignore and rotate every key it contained: they remain in the git history."},
+sec:SECRET_FIX,
+srv:{es:"Rotá la clave en Supabase y usala solo en el servidor o en Edge Functions, nunca en el frontend.",pt:"Gere uma nova chave no Supabase e use-a só no servidor ou em Edge Functions, nunca no frontend.",en:"Rotate the key in Supabase and use it only on the server or in Edge Functions, never in the frontend."},
+rls:RLS_FIX,
+tru:{es:"Reemplazá using (true) por una condición real, por ejemplo using (auth.uid() = user_id).",pt:"Substitua using (true) por uma condição real, por exemplo using (auth.uid() = user_id).",en:"Replace using (true) with a real condition, e.g. using (auth.uid() = user_id)."},
+dbg:{es:"Eliminá esas rutas o protegelas con autenticación antes de publicar.",pt:"Remova essas rotas ou proteja-as com autenticação antes de publicar.",en:"Remove those routes or put them behind authentication before going live."},
+hdr:HDR_FIX,pay0:PAY_FIX,payS:PAY_FIX,pay_stripe_only:PAY_FIX,pay_none:PAY_FIX,leg:LEG_FIX,legal_missing:LEG_FIX,
+supabase_service_role:SECRET_FIX,supabase_secret_key:SECRET_FIX,stripe_secret:SECRET_FIX,stripe_test_secret:SECRET_FIX,mp_access_token:SECRET_FIX,mp_test_access_token:SECRET_FIX,aws_access_key:SECRET_FIX,openai_key:SECRET_FIX,anthropic_key:SECRET_FIX,github_token:SECRET_FIX,private_key:SECRET_FIX,
+google_api_key:{es:"Restringí la clave por dominio (HTTP referrer) y por API en Google Cloud Console.",pt:"Restrinja a chave por domínio (HTTP referrer) e por API no Google Cloud Console.",en:"Restrict the key by domain (HTTP referrer) and by API in Google Cloud Console."},
+supabase_anon_key:RLS_FIX,supabase_publishable_key:RLS_FIX,
+no_https:{es:"Activá HTTPS en tu hosting; la mayoría lo ofrece sin costo.",pt:"Ative HTTPS na sua hospedagem; a maioria oferece sem custo.",en:"Turn on HTTPS in your hosting; most providers include it at no cost."},
+no_http_redirect:{es:"Configurá una redirección 301 de http:// a https://.",pt:"Configure um redirecionamento 301 de http:// para https://.",en:"Set up a 301 redirect from http:// to https://."},
+hsts_missing:{es:"Agregá la cabecera Strict-Transport-Security: max-age=31536000; includeSubDomains.",pt:"Adicione o cabeçalho Strict-Transport-Security: max-age=31536000; includeSubDomains.",en:"Add the header Strict-Transport-Security: max-age=31536000; includeSubDomains."},
+csp_missing:{es:"Definí una Content-Security-Policy que permita solo tus propios orígenes.",pt:"Defina uma Content-Security-Policy que permita apenas as suas próprias origens.",en:"Define a Content-Security-Policy that only allows your own origins."},
+csp_weak:{es:"Quitá 'unsafe-eval' y los comodines (*) de script-src.",pt:"Remova 'unsafe-eval' e os curingas (*) de script-src.",en:"Remove 'unsafe-eval' and wildcards (*) from script-src."},
+frame_missing:{es:"Agregá X-Frame-Options: DENY o frame-ancestors 'none' en la CSP.",pt:"Adicione X-Frame-Options: DENY ou frame-ancestors 'none' na CSP.",en:"Add X-Frame-Options: DENY or frame-ancestors 'none' in the CSP."},
+nosniff_missing:{es:"Agregá la cabecera X-Content-Type-Options: nosniff.",pt:"Adicione o cabeçalho X-Content-Type-Options: nosniff.",en:"Add the header X-Content-Type-Options: nosniff."},
+referrer_missing:{es:"Agregá Referrer-Policy: strict-origin-when-cross-origin.",pt:"Adicione Referrer-Policy: strict-origin-when-cross-origin.",en:"Add Referrer-Policy: strict-origin-when-cross-origin."},
+permissions_missing:{es:"Agregá Permissions-Policy y desactivá lo que no usás, por ejemplo camera=(), microphone=(), geolocation=().",pt:"Adicione Permissions-Policy e desative o que não usa, por exemplo camera=(), microphone=(), geolocation=().",en:"Add Permissions-Policy and disable what you don't use, e.g. camera=(), microphone=(), geolocation=()."},
+http_status:{es:"Revisá que la URL pública responda con 200.",pt:"Verifique se a URL pública responde com 200.",en:"Make sure the public URL answers with 200."}
+};
+function fx(id){var o=id&&FX[id];return o?(o[L]||o.en):""}
+// Defence in depth: the Worker already masks evidence (first 6 + last 4); mask any long unmasked token again.
+function maskEv(s){return String(s||"").replace(/-----BEGIN[^-]*-----[\s\S]*?(-----END[^-]*-----|$)/g,"-----BEGIN…KEY-----").replace(/[A-Za-z0-9_\-+\/=.]{24,}/g,function(m){return /^\/\//.test(m)||/\.(m?js|css|html?)$/.test(m)?m:m.slice(0,6)+"…"+m.slice(-4)})}
+var lastRes=null;
+function withRef(u,ref){var i=u.indexOf("#"),h=i<0?"":u.slice(i);u=i<0?u:u.slice(0,i);return u+(u.indexOf("?")<0?"?":"&")+"ref="+ref+h}
+function scanUrl(ref){return SITE+withRef(SCANP[L]+SCANH[L],ref)}
+function badgeSrc(){return SITE+"/assets/badge-"+L+".svg"}
+function badgeMd(){return "[!["+R.badge+"]("+badgeSrc()+")]("+scanUrl("badge")+")"}
+function md1(s){return String(s).replace(/[\r\n]+/g," ").replace(/([\\`*_[\]<>|])/g,"\\$1")}
+function reportMd(r){
+ var lbl={crit:T.crit,high:T.high,med:T.med,low:T.low,info:R.info,ok:R.ok},out=[],day=new Date(),z=function(n){return (n<10?"0":"")+n};
+ out.push("## "+R.h,"");
+ out.push("- **"+R.target+":** "+md1(r.target),"- **"+R.mode+":** "+(r.mode==="url"?R.mUrl:R.mRepo),"- **"+T.score+":** "+r.sc+"/100 ("+r.n+" "+r.files+")","- **"+R.date+":** "+day.getFullYear()+"-"+z(day.getMonth()+1)+"-"+z(day.getDate()),"");
+ var probs=r.f.filter(function(x){return x[0]!=="ok"&&x[0]!=="info"});
+ if(!probs.length)out.push(R.none,"");
+ ["crit","high","med","low","info","ok"].forEach(function(sv){var g=r.f.filter(function(x){return x[0]===sv});if(!g.length)return;
+  out.push("### "+lbl[sv]+" ("+g.length+")","");
+  g.forEach(function(x){out.push("- "+md1(x[1]));var ev=x[2]?maskEv(x[2]):"";if(ev)out.push("  - "+R.ev+": `"+ev.replace(/`/g,"'")+"`");if(sv!=="ok"){var h=fx(x[3]);if(h)out.push("  - "+R.fix+": "+h)}});
+  out.push("")});
+ out.push("> **"+R.disc+"** "+(r.mode==="url"?R.dUrl:R.dRepo),"");
+ out.push((probs.length?R.fp:R.fp.replace(/^[^?]*\?\s*/,""))+" "+withRef(WL.fix,"report"),"");
+ out.push("_"+R.gen+": "+scanUrl("report")+"_");
+ return out.join("\n")+"\n";
+}
+function shareBox(){return '<div class="share"><p class="mono">'+R.sh+'</p><p class="muted">'+R.shp+'</p><div class="share-row"><button type="button" class="btn s" data-share="report">'+R.bR+'</button><button type="button" class="btn s" data-share="badge">'+R.bB+'</button><img src="'+badgeSrc()+'" alt="'+R.badge+'" width="'+({es:198,pt:202,en:205}[L]||205)+'" height="20"></div><p id="share-status" class="share-status" role="status" aria-live="polite"></p></div>'}
+async function copyText(txt){
+ try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(txt);return true}}catch(e){}
+ try{var ta=document.createElement("textarea");ta.value=txt;ta.setAttribute("readonly","");ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();var ok=document.execCommand("copy");ta.remove();return ok}catch(e){return false}
+}
+async function doShare(kind){if(!lastRes)return;var txt=kind==="badge"?badgeMd():reportMd(lastRes),st=document.getElementById("share-status");
+ var ok=await copyText(txt);gcEvent((kind==="badge"?"badge_copy/":"report_copy/")+(lastRes.mode==="url"?"url":"repo"));
+ if(!st)return;if(ok){st.textContent=kind==="badge"?R.okB:R.okR;var old=st.parentNode.querySelector("textarea.share-fallback");if(old)old.remove()}
+ else{st.textContent=R.fail;var ta=st.parentNode.querySelector("textarea.share-fallback");if(!ta){ta=document.createElement("textarea");ta.className="share-fallback";ta.setAttribute("readonly","");ta.setAttribute("aria-label",kind==="badge"?R.bB:R.bR);st.parentNode.appendChild(ta)}ta.value=txt;ta.focus();ta.select()}
 }
 // T-108 URL scan (Level A): calls the passive Worker. Mode exists only if the build set a worker origin.
 var SEVMAP={critical:"crit",high:"high",medium:"med",low:"low",info:"info",ok:"ok"};
 function urlResult(r){
- var f=(r.findings||[]).map(function(x){var ev=[x.ev,x.where].filter(Boolean).join(" · ");return [SEVMAP[x.sev]||"info",tu(x.id)+(x.id==="http_status"?x.ev:""),x.id==="http_status"||x.id==="pay_local"||x.id==="pay_stripe_only"?"":ev]});
- return {f:f,n:(r.scanned&&r.scanned.js)||0,repo:(r.target&&r.target.host)||""};
+ var f=(r.findings||[]).map(function(x){var ev=[x.ev,x.where].filter(Boolean).join(" · ");return [SEVMAP[x.sev]||"info",tu(x.id)+(x.id==="http_status"?x.ev:""),x.id==="http_status"||x.id==="pay_local"||x.id==="pay_stripe_only"?"":maskEv(ev),x.id]});
+ return {f:f,n:(r.scanned&&r.scanned.js)||0,repo:(r.target&&r.target.host)||"",mode:"url"};
 }
 function urlRecover(kind,out,status){stopRetry();status.textContent="";var msg=kind==="blocked"?T.uBlocked:kind==="rate_limited"?T.uRl:T.uUnreach;
  out.innerHTML='<h3 tabindex="-1" id="scan-title">'+T.recov+"</h3><p>"+msg+'</p><div class="ctas" data-cta="url_'+kind+'"><a class="btn a" data-gc="guided" href="#self-check">'+T.ctaG+'</a><a class="btn s" style="color:var(--sal);border-color:var(--sal)" data-gc="repo" href="#scan-form">'+T.uRepo+"</a></div>";
@@ -175,7 +246,7 @@ document.addEventListener("DOMContentLoaded",function(){
    finally{ubtn.disabled=false}
   });
  }
- document.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest("[data-gc]");if(!a)return;var box=a.closest("[data-cta]");gcEvent("cta_click/"+(box?box.getAttribute("data-cta"):"x")+"/"+a.getAttribute("data-gc"));if(a.getAttribute("data-gc")==="guided"){e.preventDefault();openGuided()}else if(a.getAttribute("data-gc")==="repo"){e.preventDefault();setMode("repo");var ri=document.getElementById("repo");if(ri)ri.focus()}});
+ document.addEventListener("click",function(e){var sh=e.target.closest&&e.target.closest("[data-share]");if(sh){e.preventDefault();doShare(sh.getAttribute("data-share"));return}var a=e.target.closest&&e.target.closest("[data-gc]");if(!a)return;var box=a.closest("[data-cta]");gcEvent("cta_click/"+(box?box.getAttribute("data-cta"):"x")+"/"+a.getAttribute("data-gc"));if(a.getAttribute("data-gc")==="guided"){e.preventDefault();openGuided()}else if(a.getAttribute("data-gc")==="repo"){e.preventDefault();setMode("repo");var ri=document.getElementById("repo");if(ri)ri.focus()}});
  var q=document.getElementById("self-check");if(q){q.addEventListener("submit",function(e){e.preventDefault();
   var fs=q.querySelectorAll("fieldset"),bad=[];fs.forEach(function(x){var c=x.querySelector("input:checked");if(!c||c.value==="no")bad.push(x.dataset.fix)});
   var o=document.getElementById("self-out");var sc=Math.round(100*(fs.length-bad.length)/fs.length);
