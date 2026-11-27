@@ -126,3 +126,8 @@ html{overflow-x:clip}@media (max-width:900px){.stamp{right:8px}}
 .report .share .btn.s:hover{background:var(--volcan-2)}
 .share-status{min-height:1.4em;margin:.6rem 0 0;color:var(--jade-l)}
 .share-fallback{width:100%;min-height:8rem;margin-top:.6rem;font-family:var(--mono);font-size:.78rem}
+/* T-110 scan box embedded in blog articles */
+.prose .embed{background:var(--sal);border:2px solid var(--volcan);border-radius:var(--r);padding:1.5rem;margin:3rem 0 1rem}
+.prose .embed h2{margin-top:.4rem;font-size:1.6rem}.prose .embed details{max-width:none!important}
+.scan-note{border-left:4px solid var(--achiote);background:var(--sal);padding:.7rem 1rem;border-radius:0 12px 12px 0;margin:1.6rem 0}
+.scan-note a{font-weight:700;color:var(--achiote-ink)}

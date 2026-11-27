@@ -3,6 +3,9 @@
 (function(){
 "use strict";
 var L=(document.documentElement.lang||"es").slice(0,2);
+// T-110 blog attribution: ref comes from data-ref on #escaneo (blog embed) or ?ref=blog-<slug> on the scan pages.
+// Only that fixed slug pattern is used, never user input. Existing events stay as they are; attributed events are extra.
+var REF=(function(){var e=document.getElementById("escaneo"),r=(e&&e.getAttribute("data-ref"))||"";if(!r){try{r=new URLSearchParams(location.search).get("ref")||""}catch(x){}}return /^blog-[a-z0-9-]{1,80}$/.test(r)?r:""})();
 var T={
 es:{bad:"Ingresá un repositorio público de GitHub, por ejemplo usuario/mi-app o https://github.com/usuario/mi-app.",nf:"No encontramos ese repositorio. Puede ser privado o no existir. Hacerlo público en GitHub es opcional: si preferís no publicarlo, usá el chequeo guiado.",rl:"GitHub limitó las consultas desde tu red (60 por hora). Podés esperar a que se libere el cupo o usar el chequeo guiado.",run:"Escaneando",files:"archivos revisados",crit:"Crítico",high:"Alto",med:"Medio",ok:"Bien",none:"No encontramos problemas en lo que pudimos revisar. Esto no garantiza que la app sea segura: no revisamos tu base de datos en vivo ni tu configuración en Supabase.",score:"Puntaje de lanzamiento",cta:"Corregir esto por $29",cta2:"Ver el lanzamiento completo",clean:"El escaneo automático no encontró problemas en lo que revisa; no reemplaza una auditoría completa. Si vas a lanzar o cobrar, podemos dejar lista la seguridad completa, un cobro local y páginas legales básicas.",ctaL:"Lanzamiento Esencial por $149",urg:"Hay hallazgos críticos o altos: conviene corregirlos antes de empezar a cobrar.",rec:"Solo encontramos puntos de severidad media o baja: corregirlos es recomendado, sin urgencia.",ctaN:"Recibir el boletín gratis",title:"Resultado del escaneo",note:"Revisamos el código del repositorio, no la app en vivo. Los hallazgos son automáticos: confirmalos antes de actuar.",ctaG:"Hacer el chequeo guiado (2 min)",recov:"No pudimos completar el escaneo",rlWait:"El cupo suele liberarse en unos 60 minutos. Es una estimación: GitHub no indicó la hora exacta.",rlLeft:"Podés reintentar en %t (tiempo indicado por GitHub).",rlNow:"Ya podés reintentar el escaneo.",low:"Bajo",info:"Info",uBad:"Ingresá la URL pública de tu app, por ejemplo https://mi-app.lovable.app.",uConsent:"Para revisar una URL tenés que confirmar que la app es tuya o que tenés permiso.",uRun:"Revisando",uJs:"archivos JavaScript revisados",uNote:"Revisamos solo lo público de la app en vivo: la página, hasta 10 archivos JavaScript propios y las cabeceras HTTP. No es una auditoría ni un pentest. Los hallazgos son automáticos: confirmalos antes de actuar.",uBlocked:"Esa dirección no se puede revisar. Solo aceptamos dominios públicos con http o https en los puertos estándar (no IPs, localhost ni redes internas).",uUnreach:"No pudimos abrir la URL: no respondió, tardó más de 8 segundos o redirigió demasiadas veces.",uRl:"Hiciste muchas revisiones seguidas. Probá de nuevo en unos minutos, o usá el chequeo guiado.",uRepo:"Escanear el repo"},
 pt:{bad:"Informe um repositório público do GitHub, por exemplo usuario/meu-app ou https://github.com/usuario/meu-app.",nf:"Não encontramos esse repositório. Ele pode ser privado ou não existir. Deixá-lo público no GitHub é opcional: se preferir não publicá-lo, use o checklist guiado.",rl:"O GitHub limitou as consultas da sua rede (60 por hora). Você pode esperar o limite ser liberado ou usar o checklist guiado.",run:"Escaneando",files:"arquivos revisados",crit:"Crítico",high:"Alto",med:"Médio",ok:"Ok",none:"Não encontramos problemas no que conseguimos revisar. Isso não garante que o app seja seguro: não revisamos seu banco ao vivo nem a configuração do Supabase.",score:"Pontuação de lançamento",cta:"Corrigir isso por US$29",cta2:"Ver o lançamento completo",clean:"O scan automático não encontrou problemas no que ele verifica; isso não substitui uma auditoria completa. Se você vai lançar ou cobrar, podemos deixar prontas a segurança completa, um meio de pagamento local e páginas legais básicas.",ctaL:"Lançamento Essencial por US$149",urg:"Há achados críticos ou altos: o ideal é corrigi-los antes de começar a cobrar.",rec:"Encontramos apenas pontos de severidade média ou baixa: corrigi-los é recomendado, sem urgência.",ctaN:"Receber a newsletter grátis",title:"Resultado do scan",note:"Revisamos o código do repositório, não o app ao vivo. Os achados são automáticos: confirme antes de agir.",ctaG:"Fazer o checklist guiado (2 min)",recov:"Não conseguimos concluir o scan",rlWait:"O limite costuma ser liberado em cerca de 60 minutos. Esta é uma estimativa: o GitHub não indicou o horário exato.",rlLeft:"Você pode tentar de novo em %t (tempo informado pelo GitHub).",rlNow:"Você já pode tentar o scan de novo.",low:"Baixo",info:"Info",uBad:"Informe a URL pública do seu app, por exemplo https://meu-app.lovable.app.",uConsent:"Para verificar uma URL, confirme que o app é seu ou que você tem permissão.",uRun:"Verificando",uJs:"arquivos JavaScript verificados",uNote:"Verificamos apenas o que é público no app ao vivo: a página, até 10 arquivos JavaScript próprios e os cabeçalhos HTTP. Não é uma auditoria nem um pentest. Os achados são automáticos: confirme antes de agir.",uBlocked:"Esse endereço não pode ser verificado. Aceitamos apenas domínios públicos com http ou https nas portas padrão (sem IPs, localhost ou redes internas).",uUnreach:"Não conseguimos abrir a URL: ela não respondeu, demorou mais de 8 segundos ou redirecionou vezes demais.",uRl:"Você fez muitas verificações seguidas. Tente de novo em alguns minutos ou use o checklist guiado.",uRepo:"Escanear o repo"},
@@ -107,12 +110,15 @@ async function scan(repo,out,status){
 }
 // T-101: cookie-less GoatCounter events (no-op if analytics disabled). Only coarse buckets, never repo names/URLs/findings.
 function gcEvent(name){try{if(window.goatcounter&&window.goatcounter.count)window.goatcounter.count({path:name,title:name,event:true})}catch(e){}}
+function gcRef(name){if(REF)gcEvent(name+"/"+REF)}
 function bucket(sc){return sc>=80?"80-100":sc>=50?"50-79":"0-49"}
 // Post-scan CTA: findings -> Fix Pack; clean -> Launch or free newsletter (no paid fix offer).
 var WL={fix:"https://whop.com/checkout/plan_zaTKde6gNjQM2",launch:"https://whop.com/checkout/plan_klbC3rVIhgyog",news:"https://whop.com/checkout/plan_rO1ouDQJcQy2D"};
+function wl(k){return REF?withRef(WL[k],REF):WL[k]}
+function plans(){return document.getElementById("precios")?"#precios":SITE+({es:"/",pt:"/pt/",en:"/en/"}[L]||"/")+"#precios"}
 function ctas(hasFindings,scanText,sev,pref){pref=pref||"";
- if(hasFindings)return (sev?'<p data-sev="'+sev+'">'+(sev==="urgent"?T.urg:T.rec)+'</p>':'')+'<div class="ctas" data-cta="'+pref+'findings"><a class="btn a" data-gc="fix" href="'+WL.fix+'" rel="noopener">'+T.cta+'</a><a class="btn s" style="color:var(--sal);border-color:var(--sal)" data-gc="plans" href="#precios">'+T.cta2+"</a></div>";
- return (scanText?'<p>'+T.clean+'</p>':'')+'<div class="ctas" data-cta="'+pref+'clean"><a class="btn a" data-gc="launch" href="'+WL.launch+'" rel="noopener">'+T.ctaL+'</a><a class="btn s" style="color:var(--sal);border-color:var(--sal)" data-gc="news" href="'+WL.news+'" rel="noopener">'+T.ctaN+"</a></div>";
+ if(hasFindings)return (sev?'<p data-sev="'+sev+'">'+(sev==="urgent"?T.urg:T.rec)+'</p>':'')+'<div class="ctas" data-cta="'+pref+'findings"><a class="btn a" data-gc="fix" href="'+wl("fix")+'" rel="noopener">'+T.cta+'</a><a class="btn s" style="color:var(--sal);border-color:var(--sal)" data-gc="plans" href="'+plans()+'">'+T.cta2+"</a></div>";
+ return (scanText?'<p>'+T.clean+'</p>':'')+'<div class="ctas" data-cta="'+pref+'clean"><a class="btn a" data-gc="launch" href="'+wl("launch")+'" rel="noopener">'+T.ctaL+'</a><a class="btn s" style="color:var(--sal);border-color:var(--sal)" data-gc="news" href="'+wl("news")+'" rel="noopener">'+T.ctaN+"</a></div>";
 }
 var retryTimer=null;
 function stopRetry(){if(retryTimer){clearInterval(retryTimer);retryTimer=null}}
@@ -121,7 +127,7 @@ function retryText(reset){if(!reset)return T.rlWait;var sec=Math.max(0,reset-Mat
 function startCountdown(reset){stopRetry();retryTimer=setInterval(function(){var el=document.getElementById("scan-retry");if(!el){stopRetry();return}el.textContent=retryText(reset);if(Math.floor(Date.now()/1000)>=reset)stopRetry()},1000)}
 function openGuided(){var q=document.getElementById("self-check");if(!q)return;var d=q.closest("details");if(d)d.open=true;var reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;q.scrollIntoView({behavior:reduce?"auto":"smooth",block:"start"});var h=q.querySelector("h3");if(h){h.setAttribute("tabindex","-1");h.focus()}}
 function isRL(err){return err==="rl"||(err&&err.kind==="rl")}
-function recover(kind,reset,out,status){stopRetry();status.textContent="";var h='<h3 tabindex="-1" id="scan-title">'+T.recov+"</h3><p>"+(kind==="rate_limited"?T.rl:T.nf)+"</p>";if(kind==="rate_limited")h+='<p id="scan-retry" class="mono" aria-live="off">'+retryText(reset)+"</p>";h+='<div class="ctas" data-cta="'+kind+'"><a class="btn a" data-gc="guided" href="#self-check">'+T.ctaG+'</a><a class="btn s" style="color:var(--sal);border-color:var(--sal)" data-gc="fix" href="'+WL.fix+'" rel="noopener">'+T.cta+"</a></div>";out.innerHTML=h;out.hidden=false;document.getElementById("scan-title").focus();if(kind==="rate_limited"&&reset)startCountdown(reset)}
+function recover(kind,reset,out,status){stopRetry();status.textContent="";var h='<h3 tabindex="-1" id="scan-title">'+T.recov+"</h3><p>"+(kind==="rate_limited"?T.rl:T.nf)+"</p>";if(kind==="rate_limited")h+='<p id="scan-retry" class="mono" aria-live="off">'+retryText(reset)+"</p>";h+='<div class="ctas" data-cta="'+kind+'"><a class="btn a" data-gc="guided" href="#self-check">'+T.ctaG+'</a><a class="btn s" style="color:var(--sal);border-color:var(--sal)" data-gc="fix" href="'+wl("fix")+'" rel="noopener">'+T.cta+"</a></div>";out.innerHTML=h;out.hidden=false;document.getElementById("scan-title").focus();if(kind==="rate_limited"&&reset)startCountdown(reset)}
 function render(res,out,o){o=o||{};
  var w={crit:30,high:15,med:6,low:2,info:0,ok:0},sc=100;res.f.forEach(function(x){sc-=w[x[0]]||0});sc=Math.max(0,sc);
  var lbl={crit:T.crit,high:T.high,med:T.med,low:T.low,info:T.info,ok:T.ok},cls={crit:"bad",high:"bad",med:"bad",low:"bad",info:"info",ok:"ok"};
@@ -220,12 +226,12 @@ async function urlScan(worker,target){
  catch(e){return {ok:false,error:"unreachable"}}finally{clearTimeout(tm)}
 }
 function urlErrKind(e){return e==="blocked_target"||e==="invalid_url"?"blocked":e==="rate_limited"?"rate_limited":"unreachable"}
-document.addEventListener("DOMContentLoaded",function(){
+function init(){
  var form=document.getElementById("scan-form");if(form){
  var out=document.getElementById("scan-out"),status=document.getElementById("scan-status"),btn=form.querySelector("button");
  form.addEventListener("submit",async function(e){e.preventDefault();var repo=parse(form.repo.value);
   if(!repo){status.textContent=T.bad;return}
-  btn.disabled=true;status.textContent=T.run+"…";out.hidden=true;stopRetry();gcEvent("scan_run");
+  btn.disabled=true;status.textContent=T.run+"…";out.hidden=true;stopRetry();gcEvent("scan_run");gcRef("scan_run");
   try{var r=await scan(repo,out,status);status.textContent="";gcEvent("scan_result/"+bucket(render(r,out)))}
   catch(err){var rl=isRL(err);recover(rl?"rate_limited":"not_found",rl&&err.reset,out,status);gcEvent("scan_result/"+(rl?"rate_limited":"not_found"))}
   finally{btn.disabled=false}
@@ -239,18 +245,20 @@ document.addEventListener("DOMContentLoaded",function(){
   uf.addEventListener("submit",async function(e){e.preventDefault();var v=(uf.appurl.value||"").trim();
    if(!/^(https?:\/\/)?[^\s\/?#]+\.[^\s\/?#]+/i.test(v)){ust.textContent=T.uBad;uf.appurl.focus();return}
    if(!ucb.checked){ust.textContent=T.uConsent;ucb.focus();return}
-   ubtn.disabled=true;ust.textContent=T.uRun+"…";uout.hidden=true;gcEvent("url_scan_run");
+   ubtn.disabled=true;ust.textContent=T.uRun+"…";uout.hidden=true;gcEvent("url_scan_run");gcRef("url_scan_run");
    try{var j=await urlScan(worker,v);
     if(j&&j.ok){ust.textContent="";gcEvent("url_scan_result/"+bucket(render(urlResult(j),uout,{files:T.uJs,note:T.uNote,pref:"url_"})))}
     else{var k=urlErrKind(j&&j.error);urlRecover(k,uout,ust);gcEvent("url_scan_result/"+k)}}
    finally{ubtn.disabled=false}
   });
  }
- document.addEventListener("click",function(e){var sh=e.target.closest&&e.target.closest("[data-share]");if(sh){e.preventDefault();doShare(sh.getAttribute("data-share"));return}var a=e.target.closest&&e.target.closest("[data-gc]");if(!a)return;var box=a.closest("[data-cta]");gcEvent("cta_click/"+(box?box.getAttribute("data-cta"):"x")+"/"+a.getAttribute("data-gc"));if(a.getAttribute("data-gc")==="guided"){e.preventDefault();openGuided()}else if(a.getAttribute("data-gc")==="repo"){e.preventDefault();setMode("repo");var ri=document.getElementById("repo");if(ri)ri.focus()}});
+ document.addEventListener("click",function(e){var sh=e.target.closest&&e.target.closest("[data-share]");if(sh){e.preventDefault();doShare(sh.getAttribute("data-share"));return}var a=e.target.closest&&e.target.closest("[data-gc]");if(!a)return;var box=a.closest("[data-cta]"),cb=(box?box.getAttribute("data-cta"):"x")+"/"+a.getAttribute("data-gc");gcEvent("cta_click/"+cb);if(REF)gcEvent("cta_click/"+REF+"/"+cb);if(a.getAttribute("data-gc")==="guided"){e.preventDefault();openGuided()}else if(a.getAttribute("data-gc")==="repo"){e.preventDefault();setMode("repo");var ri=document.getElementById("repo");if(ri)ri.focus()}});
  var q=document.getElementById("self-check");if(q){q.addEventListener("submit",function(e){e.preventDefault();
   var fs=q.querySelectorAll("fieldset"),bad=[];fs.forEach(function(x){var c=x.querySelector("input:checked");if(!c||c.value==="no")bad.push(x.dataset.fix)});
   var o=document.getElementById("self-out");var sc=Math.round(100*(fs.length-bad.length)/fs.length);
   o.innerHTML='<h3 tabindex="-1" id="self-title">'+T.score+": "+sc+"/100</h3>"+(bad.length?bad.map(function(b){return '<div class="finding"><span class="pill bad">!</span> '+esc(b)+"</div>"}).join(""):"<p>"+T.none+"</p>")+ctas(bad.length>0,false);
   o.hidden=false;document.getElementById("self-title").focus()})}
-});
+}
+// T-110: scan.js may be lazy-loaded on blog pages after DOMContentLoaded.
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();

@@ -57,6 +57,8 @@ def page(lang, path, title, desc, body, alts=None, schema=None, dock=None, og=No
     nav_lbl={"es":"Principal","pt":"Principal","en":"Main"}[lang]
     dock_html = f'<nav class="dock" aria-label="{nav_lbl}">' + "".join(items) + '</nav>'
     uc = URLSCAN_CONNECT if 'id="url-form"' in body else ""  # T-108: worker origin only on pages with the URL form
+    # T-110: blog pages with the embedded scan box load a tiny loader; scan.js is fetched lazily (near the box / on interaction).
+    sjs = "scan-lazy.js" if "data-lazy-scan" in body else "scan.js"
 
     return f'''<!doctype html><html lang="{hl}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{html.escape(title)}</title><meta name="description" content="{html.escape(desc)}">
@@ -69,7 +71,7 @@ def page(lang, path, title, desc, body, alts=None, schema=None, dock=None, og=No
 <link rel="stylesheet" href="{BASE}/assets/site.css">
 <meta property="og:type" content="website"><meta property="og:site_name" content="LaunchLatam"><meta property="og:title" content="{html.escape(title)}"><meta property="og:description" content="{html.escape(desc)}"><meta property="og:url" content="{url}"><meta property="og:image" content="{ogi}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:locale" content="{hl.replace('-','_')}">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{ogi}">
-{sch}<script src="{BASE}/assets/scan.js" defer></script>{GC_TAG}</head><body>
+{sch}<script src="{BASE}/assets/{sjs}" defer></script>{GC_TAG}</head><body>
 <a class="skip" href="#main">{ {"es":"Saltar al contenido","pt":"Pular para o conteúdo","en":"Skip to content"}[lang] }</a>
 <header class="wrap mast"><a class="brand" href="{BASE}{home}">{LOGO}<span>LaunchLatam</span></a><div class="lang" aria-label="Idioma / Language">{langs}</div></header>
 <main id="main">{body}</main>{FOOT[lang]}{dock_html}</body></html>'''
@@ -258,15 +260,24 @@ def url_form(lang):
             f'<p class="muted disc">{u["disc"]} <a href="{BASE}{u["tp"]}">{u["terms"]}</a>.</p>'
             f'<p id="url-status" role="status" aria-live="polite" class="mono"></p></form>\n')
 
-def scan_block(lang, c, standalone=False):
+def scan_block(lang, c, standalone=False, embed=None):
+    """embed (T-110): dict(ref, k, h, p) renders the same scanner as a single box inside a blog article."""
     st, qs, y, n, b = SELF[lang]
     fs = "".join(f'<fieldset class="q" data-fix="{html.escape(fix)}"><legend>{html.escape(q)}</legend><label><input type="radio" name="q{i}" value="yes"> {y}</label><label><input type="radio" name="q{i}" value="no"> {n}</label></fieldset>' for i,(q,fix) in enumerate(qs))
     hx = "h1" if standalone else "h2"
-    return f'''<section id="escaneo"><div class="wrap"><p class="mono">{c["sk"]}</p><{hx}>{c["sh"]}</{hx}><p class="muted" style="max-width:60ch">{c["sp"]}</p>
+    if embed:
+        head = (f'<section id="escaneo" class="embed" data-ref="{embed["ref"]}" data-lazy-scan data-scan-src="{BASE}/assets/scan.js" aria-labelledby="embed-h"><div>'
+                f'<p class="mono">{embed["k"]}</p><h2 id="embed-h">{embed["h"]}</h2><p>{embed["p"]}</p><p class="muted" style="max-width:60ch">{c["sp"]}</p>')
+        tail = (f'<div class="ctas" data-cta="blog"><a class="btn s" data-gc="fix" href="{W["fix"]}?ref={embed["ref"]}" rel="noopener">Fix Pack $29</a></div>'
+                f'<p class="muted disc">{c["steps"][1][1]}</p>')
+    else:
+        head = f'''<section id="escaneo"><div class="wrap"><p class="mono">{c["sk"]}</p><{hx}>{c["sh"]}</{hx}><p class="muted" style="max-width:60ch">{c["sp"]}</p>'''
+        tail = ""
+    return head + f'''
 {url_modes(lang)}<form id="scan-form" class="field" style="max-width:640px" novalidate><label for="repo">{c["slab"]}</label><div style="display:flex;gap:.6rem;flex-wrap:wrap"><input id="repo" name="repo" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="{c["sph"]}" required style="flex:1;min-width:220px"><button class="btn p" type="submit">{c["sbtn"]}</button></div><p id="scan-status" role="status" aria-live="polite" class="mono"></p></form>
 {url_form(lang)}<div id="scan-out" class="report" hidden aria-live="polite"></div>
 <details style="margin-top:2rem;max-width:760px"><summary>{c["priv"]}</summary><p>{c["privp"]} <a href="mailto:{MAIL}">{MAIL}</a>.</p>
-<form id="self-check"><h3>{st}</h3>{fs}<button class="btn p" type="submit">{b}</button></form><div id="self-out" class="report" hidden aria-live="polite"></div></details></div></section>'''
+<form id="self-check"><h3>{st}</h3>{fs}<button class="btn p" type="submit">{b}</button></form><div id="self-out" class="report" hidden aria-live="polite"></div></details>{tail}</div></section>'''
 
 # Blog posts. lang: es|pt|en. tkey groups translations of the same article (drives hreflang).
 # To add a PT/EN article: append a dict here and its HTML body to POST_BODIES in content.py (key = slug).
@@ -281,6 +292,26 @@ POSTS = [
  dict(lang="es", slug="stripe-no-funciona-en-mi-pais", tkey="stripe-latam", date="2026-10-31", title="¿Stripe no está disponible en tu país? Opciones para cobrar en Latinoamérica", desc="Qué hacer si Stripe no abre cuentas en tu país: Mercado Pago, dLocal, Paddle, Lemon Squeezy y Whop comparados para creadores latinoamericanos."),
 ]
 BLOG_ROOT = {"es": "/blog/", "pt": "/pt/blog/", "en": "/en/blog/"}
+# T-110 pilot (John, 2026-11-27): embedded + attributed scan box in 3 articles only. ref=blog-<slug> on the box events,
+# the Fix Pack link and the /escaneo/ links. Copy: automated check, not an audit; no promised results.
+BLOG_SCAN = {
+ "mercado-pago-en-apps-lovable": dict(
+   k="Escaneo gratis · Claves y Mercado Pago", h="¿Tu app de Lovable deja ver alguna clave?",
+   p="Chequeo automático, no auditoría. Busca claves secretas en tu repo público o en el JavaScript de tu app (por ejemplo el access token de Mercado Pago o la clave <code>service_role</code> de Supabase), si ya tenés un cobro local y si faltan páginas legales. En modo repo también marca tablas de Supabase creadas sin RLS. Te muestra lo que encuentra; no cambia nada en tu app.",
+   note="Chequeo automático gratis: revisá si tu repo o tu app dejan ver claves de Mercado Pago o de Supabase"),
+ "stripe-no-funciona-en-mi-pais": dict(
+   k="Escaneo gratis · Cobros y páginas legales", h="¿Tu app solo cobra con Stripe?",
+   p="Chequeo automático, no auditoría. Revisa si tu repo público o tu app usan solo Stripe o ya tienen un cobro local (Mercado Pago o Pix), si hay páginas de privacidad y términos, y si quedó alguna clave secreta a la vista. No elige un proveedor por vos ni confirma que puedas cobrar en tu país.",
+   note="Chequeo automático gratis: revisá si tu app solo cobra con Stripe y si tiene páginas legales"),
+ "app-feito-com-ia-e-seguro": dict(
+   k="Scan grátis · RLS, chaves e páginas legais", h="Confira algumas destas verificações no seu app",
+   p="Verificação automática, não auditoria. No seu repo público ou na URL do app, procuramos chaves secretas expostas (como a <code>service_role</code> do Supabase ou o access token do Mercado Pago), se há Pix ou Mercado Pago e se existem páginas de privacidade e termos. No modo repo, também apontamos tabelas do Supabase criadas sem RLS. Cobre só parte das 10 verificações deste artigo; o resto pede revisão manual.",
+   note="Verificação automática grátis: confira se o seu repo ou app expõe chaves ou tem tabelas sem RLS"),
+}
+def ref_url(path, ref):
+    """BT scan path + ?ref=, keeping any #fragment at the end (e.g. /pt/?ref=blog-x#escaneo)."""
+    base, _, frag = path.partition("#")
+    return f"{BASE}{base}{'&' if '?' in base else '?'}ref={ref}" + (f"#{frag}" if frag else "")
 def post_path(p): return BLOG_ROOT[p["lang"]] + p["slug"] + "/"
 def post_alts(p): return {q["lang"]: post_path(q) for q in POSTS if q["tkey"] == p["tkey"]}
 def posts_for(lang):
@@ -414,7 +445,15 @@ for p in POSTS:
         sch.append({"@context":"https://schema.org","@type":"HowTo","name":howto["name"],"description":howto["description"],
             "step":[{"@type":"HowToStep","position":i,"name":n,"text":t} for i,(n,t) in enumerate(howto["steps"],1)]})
     faq_html = (f'<h2>{bt["faq"]}</h2>' + "".join(f'<details><summary>{q}</summary><p>{ans}</p></details>' for q,ans in faqs)) if faqs else ""
-    inner = f'<nav aria-label="Breadcrumb" class="mono"><a href="{BASE}{LOCALES[lang][1]}">{bt["home"]}</a> / <a href="{BASE}{BLOG_ROOT[lang]}">Blog</a> · {fdate(p["date"], lang)}</nav><h1 style="font-size:clamp(2rem,4.5vw,3.4rem)">{p["title"]}</h1>' + POST_BODIES[p["slug"]] + faq_html + f'<div class="report"><h3>{bt["ch"]}</h3><p>{bt["cp"]}</p><div class="ctas"><a class="btn a" href="{BASE}{bt["scan"]}">{bt["cb"]}</a><a class="btn s" style="color:var(--sal);border-color:var(--sal)" href="{W["fix"]}" rel="noopener">Fix Pack $29</a></div></div>'
+    body = POST_BODIES[p["slug"]]; emb = BLOG_SCAN.get(p["slug"])
+    if emb:  # T-110: light text link after the first section + one scan box at the end (replaces the generic CTA box)
+        ref = "blog-" + p["slug"]; cut = [m.start() for m in re.finditer(r"<h2", body)]
+        assert len(cut) >= 2, p["slug"]
+        body = body[:cut[1]] + f'<p class="scan-note"><a href="{ref_url(bt["scan"], ref)}">{emb["note"]} →</a></p>\n' + body[cut[1]:]
+        endbox = scan_block(lang, C[lang], embed=dict(emb, ref=ref))
+    else:
+        endbox = None
+    inner = f'<nav aria-label="Breadcrumb" class="mono"><a href="{BASE}{LOCALES[lang][1]}">{bt["home"]}</a> / <a href="{BASE}{BLOG_ROOT[lang]}">Blog</a> · {fdate(p["date"], lang)}</nav><h1 style="font-size:clamp(2rem,4.5vw,3.4rem)">{p["title"]}</h1>' + body + faq_html + (endbox or f'<div class="report"><h3>{bt["ch"]}</h3><p>{bt["cp"]}</p><div class="ctas"><a class="btn a" href="{BASE}{bt["scan"]}">{bt["cb"]}</a><a class="btn s" style="color:var(--sal);border-color:var(--sal)" href="{W["fix"]}" rel="noopener">Fix Pack $29</a></div></div>')
     ogp = f"/assets/og/{lang}-{p['slug']}.png"
     og.make(ROOT + ogp, "LaunchLatam · Blog", p["title"], f"rodrix91.github.io/launchlatam · {fdate(p['date'], lang)}", {"es":"APTA","pt":"APTO","en":"CLEARED"}[lang])
     sch[0]["image"] = BASE + ogp
